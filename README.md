@@ -51,6 +51,68 @@ The app is a normal Vite app: `excalidraw-app` is the application, `packages/exc
 
 ---
 
+## Setting it up
+
+There is a **setup script**. It checks for everything the project needs, tells you what it found, and installs what is missing — so you do not have to work out for yourself that you need Node, or that Yarn comes from Corepack, or that the extension has to be installed from a `.vsix`.
+
+**Windows:**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\setup.ps1
+```
+
+**macOS and Linux:**
+
+```bash
+bash installer/setup.sh
+```
+
+It checks for:
+
+|  |  |
+| --- | --- |
+| **Node.js** | 20 or newer |
+| **Yarn** | or Corepack, to provide it |
+| **VS Code** | the `code` command, or the standard install |
+| **VSCodium** | the `codium` command, or the standard install |
+| **the extension** | the `.vsix`, built for you if it is not there yet |
+| **the app's dependencies** | installed with `yarn install` |
+| **the language runtimes** | `node`, `python` and `java` — what the panel's **Run** can execute |
+
+**It asks before it installs anything.** Two switches:
+
+- `-DryRun` — report everything and install **nothing**. Safe to run anywhere.
+- `-Yes` — accept the defaults without being asked.
+
+Running it twice is safe: everything it checks is idempotent, and the second run says _"already there"_.
+
+If you would rather not install anything at all, the [Docker](#running-it-in-a-container) route serves the app from a container instead.
+
+---
+
+## Running it in a container
+
+If a student would rather install nothing at all, the app runs in a container:
+
+```bash
+docker compose -f docker/docker-compose.yml up --build -d
+```
+
+Then open <http://localhost:3000>. Stop it again with `docker compose -f docker/docker-compose.yml down`.
+
+The container is the **app** — the whiteboard, the panels, the code cards, the pages. The **extension stays on the host**, because it lives inside the editor and it _is_ the editor's own process. So the container reaches the host's bridge over `host.docker.internal`, and the compose file builds the app with `VITE_APP_BRIDGE_URL=ws://host.docker.internal:47511` to match.
+
+That URL is **build-time** — it is baked into the bundle when the image is built. To change it, build again with another value:
+
+```bash
+docker compose -f docker/docker-compose.yml build \
+  --build-arg VITE_APP_BRIDGE_URL=ws://host.docker.internal:47511
+```
+
+More in [`docker/README.md`](docker/README.md).
+
+---
+
 ## The VS Code / VSCodium bridge
 
 ### Build and install the extension
