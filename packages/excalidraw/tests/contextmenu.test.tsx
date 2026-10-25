@@ -346,7 +346,7 @@ describe("contextMenu element", () => {
 
     // closing the background popover as this blocks
     // context menu from rendering after we started focussing
-    // the popover once rendered:/
+    // the popover once rendered :/
     togglePopover("Background");
 
     mouse.reset();

@@ -37,7 +37,7 @@ const languageKey = (id: string) => id.trim().toLowerCase();
  * Registers the grammar of a language.
  *
  * The id is the one VS Code sends (`document.languageId`): `python`, `java`,
- * `javascript`, `cpp`, `c`, `rust`, `typescript`,...
+ * `javascript`, `cpp`, `c`, `rust`, `typescript`, ...
  */
 export const registerCodeMirrorLanguage = (
   id: string,

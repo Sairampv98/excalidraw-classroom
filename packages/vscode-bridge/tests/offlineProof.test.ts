@@ -10,7 +10,7 @@
  *      session it was started with;
  *   2. the machine really had no internet while the setup ran.
  *
- * The second one cannot be taken on trust. The.wsb asks for no networking,
+ * The second one cannot be taken on trust. The .wsb asks for no networking,
  * and on the machine this was proved on that request was NOT honoured: the
  * Sandbox came up with a "Microsoft Hyper-V Network Adapter", a default route
  * and a working internet - even on a sandbox that had just been started. So

@@ -7,11 +7,11 @@
  * the `.excalidraw` file, and it would grow the document by hundreds of
  * kilobytes a second.
  *
- * Since wave 5i the rule is **stronger**: the frames do not travel over the
- * websocket at all. The extension serves them as an MJPEG stream from its own
- * HTTP server, and the panel plays that stream in a plain `<img>`. So
- * a frame never enters the app's data - it is never in a message, never in
- * the registry, and never in the element.
+ * Since the live view became a stream the rule is **stronger**: the frames do
+ * not travel over the websocket at all. The extension serves them as an MJPEG
+ * stream from its own HTTP server, and the panel plays that stream in a plain
+ * `<img>`. So a frame never enters the app's data - it is never in a message,
+ * never in the registry, and never in the element.
  *
  * What the registry holds is therefore the live view's **descriptor**: the
  * capture's state and the URL of the stream. It is a module-level store -

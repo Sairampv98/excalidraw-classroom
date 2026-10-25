@@ -497,10 +497,10 @@ const ExcalidrawWrapper = () => {
   /**
    * Reads an **ordinary image** element the teacher picked.
    *
-   * The owner asked for the OCR of a screenshot to be offered for "regular
-   * images aswell": a screenshot pasted in by hand is an ordinary image
-   * element, and it deserves the same choice — the same read, the same
-   * per-line text over the picture.
+   * Provides the OCR of a screenshot to be offered for "regular images
+   * aswell": a screenshot pasted in by hand is an ordinary image element,
+   * and it deserves the same choice — the same read, the same per-line
+   * text over the picture.
    */
   const readImage = useCallback(
     async ({ element }: { element: NonDeleted<ExcalidrawImageElement> }) => {
@@ -725,7 +725,7 @@ const ExcalidrawWrapper = () => {
    *
    * The sidebar is overlaid on the editor container, so the canvas's own
    * controls - the page bar, the toolbar's right end - used to land
-   * **underneath** it (the owner's exact report). The library reserves the
+   * **underneath** it (the teacher's exact report). The library reserves the
    * sidebar's width inside its own layer; this is the same reservation, said
    * to the app's own chrome, which lives outside the library's container.
    *

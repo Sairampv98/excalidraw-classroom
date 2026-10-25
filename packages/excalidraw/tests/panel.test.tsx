@@ -2,8 +2,7 @@
  * The canvas panel: the element, its restore, its two modes, and its lock
  * transition.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { describe, expect, it } from "vitest";

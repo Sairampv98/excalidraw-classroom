@@ -227,7 +227,7 @@ const PanelBridgeField = ({
  * The engine was a VS Code setting, so choosing it meant leaving the
  * whiteboard. The picker is beside the "Read the text" button and it carries
  * the three engines, each with its **measured** speed as a colour - the
- * traffic lights the owner asked for: green for the fastest, amber for the
+ * traffic lights the teacher asked for: green for the fastest, amber for the
  * middle, red for the slowest.
  *
  * The library draws the picker; the **host** owns the engines and their

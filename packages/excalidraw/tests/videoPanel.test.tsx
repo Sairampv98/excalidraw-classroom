@@ -1,8 +1,7 @@
 /**
  * The video panel: the element, the captions beside it, and the poster.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -560,8 +559,8 @@ describe("the video panel", () => {
     });
 
     // and the control SAYS the panel is muted - the state the teacher
-    // experiences, not the field the control happens to be bound to.
-    // The owner's report: "sliding the volume slider completely down does not
+    // experiences, not the field the control happens to be bound to. The
+    // teacher's report: "sliding the volume slider completely down does not
     // show the mute icon".
     expect(mute!.getAttribute("aria-pressed")).toBe("true");
     expect(mute!.getAttribute("aria-label")).toBe("Unmute");
@@ -691,14 +690,14 @@ describe("the video panel", () => {
 
     expect(video).not.toBeNull();
 
-    // the cues ride in `<track>` elements...
+    // the cues ride in `<track>` elements ...
     const tracks = video!.querySelectorAll("track");
 
     expect(tracks.length).toBe(1);
 
     // ... and NONE of them is `default`: the player does not draw the caption,
     // because the caption lives in the text element beside the panel (the
-    // owner's rule, 2026-10-21)
+    // teacher's rule, 2026-10-21)
     for (const track of Array.from(tracks)) {
       expect(track.hasAttribute("default")).toBe(false);
     }
@@ -924,7 +923,7 @@ describe("the video panel", () => {
     const asked = hostResolver();
 
     // the fallback must never build a base64 string of a big file: that is
-    // the 827 MiB of memory wave 5l removed
+    // the 827 MiB of memory an earlier fix removed
     const readAsDataURL = vi.spyOn(FileReader.prototype, "readAsDataURL");
     const encode = vi.spyOn(globalThis, "btoa");
 

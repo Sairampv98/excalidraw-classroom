@@ -268,7 +268,7 @@ describe("resolvePresenterCamera", () => {
     // the page rect the camera is anchored to (the library's own layout)
     const pageRect = getPageRect(camera);
 
-    // the editor frames the page...
+    // the editor frames the page ...
     const editorCamera = getCameraForPage({
       viewportWidth: editor.width,
       viewportHeight: editor.height,
@@ -280,7 +280,7 @@ describe("resolvePresenterCamera", () => {
     // the page's near edge overhangs the viewport's near edge
     expect(editor.width / editorCamera.zoom).toBeGreaterThan(pageRect.width);
 
-    // the editor publishes that camera...
+    // the editor publishes that camera ...
     const published = getPresenterCamera(
       makeAppState({
         pages,

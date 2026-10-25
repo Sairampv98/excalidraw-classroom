@@ -12,7 +12,7 @@ import type { OcrLine } from "../../packages/vscode-bridge/bridge/src/ocr";
  * placement is a matter of scale: the image's pixels per canvas unit.
  *
  * The result is one **text element per line**, placed over the picture it was
- * read from. That is what the owner asked for: the text is an ordinary
+ * read from. That is what the teacher asked for: the text is an ordinary
  * element of the document, so it is moved, restyled and undone like any other,
  * and it is never burnt into the picture.
  */

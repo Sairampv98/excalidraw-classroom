@@ -10,8 +10,8 @@
  * fails silently — and the compiler catches only about a third of them.
  *
  * This file is what holds the rest honest: one test per recorded decision,
- * named with the row id, so the kit's SPEC lint can find it and so a
- * future change that forgets one of these places fails here.
+ * named for the requirement it checks, so that a future change that
+ * forgets one of these places fails here.
  */
 
 import { describe, expect, it } from "vitest";

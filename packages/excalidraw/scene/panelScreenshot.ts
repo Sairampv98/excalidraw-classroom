@@ -82,7 +82,7 @@ export const WHOLE_PICTURE: PanelScreenshotCrop = {
 /**
  * Where the teacher is in the **placement flow**.
  *
- * The owner's order, in the owner's words: the **crop** comes first, the
+ * The teacher's order, in the teacher's words: the **crop** comes first, the
  * **choice** of what to do with the picture comes next, the **page** is chosen
  * through the ribbon, and the **target** - where it goes on the canvas - is
  * chosen **last**.

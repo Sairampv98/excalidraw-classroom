@@ -2,8 +2,7 @@
  * The **virtual display** when its driver is installed but **detached**, and
  * the **editor's own window** moving onto it and coming back.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { spawn } from "node:child_process";
@@ -26,7 +25,7 @@ import {
   parseDisplays,
 } from "../extension/src/virtualDisplay";
 
-// A fixture, not a credential: the name says so, and the kit's secret scan
+// A fixture, not a credential: the name says so, and the secret scan
 // recognises a `test-` prefixed value as the placeholder it is.
 const TOKEN = "test-per-session-token-that-must-never-leak";
 

@@ -3,7 +3,7 @@
  * Build the offline setup - the setup as ONE file that carries its payload.
  *
  * The executable is compiled by the C# compiler that ships with Windows
- * (`csc.exe` in the.NET Framework folder), so the project gains NO
+ * (`csc.exe` in the .NET Framework folder), so the project gains NO
  * dependency: nothing is downloaded, nothing is installed.
  *
  *   node installer/offline/build-offline-setup.mjs [--payload <dir>] [--out <file>]

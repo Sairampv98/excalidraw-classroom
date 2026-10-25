@@ -5,8 +5,7 @@
  * with NO bridge, the OCR option says the bridge is needed — it does
  *        not fail silently, and no OCR engine is bundled in the browser.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -121,7 +120,7 @@ describe("the OCR capability without a bridge", () => {
       );
     }
 
-    // The ROOT package carries the engine as the build-time source the.vsix
+    // The ROOT package carries the engine as the build-time source the .vsix
     // is built from. It is a dependency of the BUILD, not of the
     // product, and it is not in the browser's half.
     const rootPackage = JSON.parse(read("package.json"));
@@ -134,7 +133,7 @@ describe("the OCR capability without a bridge", () => {
     );
 
     // and the EXTENSION declares it: the declared dependency that ships
-    // inside the.vsix, so the teacher installs nothing
+    // inside the .vsix, so the teacher installs nothing
     const extensionPackage = JSON.parse(
       read("packages/vscode-bridge/extension/package.json"),
     );

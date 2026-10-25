@@ -8,10 +8,9 @@
  * ## There is no engine here, and there must not be one
  *
  * The engine is `tesseract.js` (WASM), and it runs in the bridge's Node
- * process. A WASM OCR engine in the browser is a multi-megabyte
- * download on a slow classroom connection, and the project rule is no new
- * dependency without the owner's approval. So this file imports nothing but
- * types.
+ * process. A WASM OCR engine in the browser is a multi-megabyte download on
+ * a slow classroom connection, and the project rule is no new dependency
+ * without the teacher's approval. So this file imports nothing but types.
  *
  * ## With no bridge, the app says so
  *

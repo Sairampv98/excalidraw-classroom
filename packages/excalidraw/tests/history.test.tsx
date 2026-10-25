@@ -164,7 +164,7 @@ describe("history", () => {
       const appState = getDefaultAppState() as AppState;
 
       try {
-        // due to this we unfortunately we couldn't do simple.toThrow()
+        // due to this we unfortunately we couldn't do simple .toThrow()
         act(
           () =>
             h.history.undo(
@@ -184,7 +184,7 @@ describe("history", () => {
       ]);
 
       try {
-        // due to this we unfortunately we couldn't do simple.toThrow()
+        // due to this we unfortunately we couldn't do simple .toThrow()
         act(
           () =>
             h.history.redo(

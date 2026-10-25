@@ -3,11 +3,10 @@
  *
  * The token is a secret, so it never leaves the tab: it is in memory, and in
  * the tab's `sessionStorage` - which survives a reload and dies with the tab
- *. It is never in `localStorage`, never in a URL and never in the
+ * . It is never in `localStorage`, never in a URL and never in the
  * document.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -23,7 +22,7 @@ import {
 import { useBridgePanel } from "../bridge/useBridgePanel";
 
 /**
- * A token that is **obviously** not a secret: the kit's secret scanner
+ * A token that is **obviously** not a secret: the secret scanner
  * exempts values that say they are a test, a fake or a placeholder.
  */
 const TEST_TOKEN = "test-token-placeholder";
@@ -195,7 +194,7 @@ describe("the app's bridge session", () => {
     // nor in a cookie
     expect(document.cookie).not.toContain(TEST_TOKEN);
 
-    // it IS in the tab's own session memory - that is the whole of it:
+    // it IS in the tab's own session memory - that is the whole:
     // it survives a reload and dies with the tab
     expect(storageHolds(sessionStorage, TEST_TOKEN)).toBe(true);
   });

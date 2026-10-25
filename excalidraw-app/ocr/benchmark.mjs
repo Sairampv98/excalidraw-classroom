@@ -408,7 +408,7 @@ const run = async () => {
   const recordedAt = new Date().toISOString();
   const previous = readPreviousRecord(outPath);
 
-  // tesseract: the engine that ships inside the.vsix
+  // tesseract: the engine that ships inside the .vsix
   const tesseract = await measureTesseract();
 
   engines.tesseract = {

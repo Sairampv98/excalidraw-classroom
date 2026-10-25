@@ -2,8 +2,7 @@
  * The **code panel**: the mirrored editor, the program's output, the bridge's
  * own messages, and the bridge field in the panel's chrome.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { describe, expect, it, vi, afterEach } from "vitest";
@@ -193,7 +192,7 @@ describe("the code panel", () => {
 
     const overlay = document.querySelector('[data-testid="panel-overlay"]');
 
-    // the state is shown...
+    // the state is shown ...
     const status = overlay!.querySelector('[data-testid="code-panel-status"]');
 
     expect(status).not.toBeNull();
@@ -226,7 +225,7 @@ describe("the code panel", () => {
 
     expect(overlay).not.toBeNull();
 
-    // the region is there...
+    // the region is there ...
     expect(
       overlay!.querySelector('[data-testid="code-panel-editor"]'),
     ).not.toBeNull();
@@ -250,8 +249,8 @@ describe("the code panel", () => {
 
     // The bridge is not connected. The panel says WHY it has nothing to show,
     // and it never renders an empty editor - a blank editor is a black box
-    // with no explanation, which is exactly what the owner saw on 2026-10-22
-    //.
+    // with no explanation, which is exactly what the teacher saw on
+    // 2026-10-22 .
     API.setElements([asElement(codePanel(emptyCodePanelState()))]);
 
     await waitFor(() =>
@@ -373,7 +372,7 @@ describe("the code panel", () => {
 
     const panel = codePanel(state);
 
-    // the live state rides inside the payload...
+    // the live state rides inside the payload ...
     expect(readCodePanelState(panel.panel)).toEqual(state);
 
     // ... and it is plain data: it survives a structured clone
@@ -390,7 +389,7 @@ describe("the code panel", () => {
 
     const overlay = document.querySelector('[data-testid="panel-overlay"]');
 
-    // the tab strip is IN the editor region...
+    // the tab strip is IN the editor region ...
     const editor = overlay!.querySelector('[data-testid="code-panel-editor"]')!;
     const header = editor.querySelector('[data-testid="code-panel-header"]');
 
@@ -625,7 +624,7 @@ describe("the code panel", () => {
       return found as HTMLImageElement;
     })) as HTMLImageElement;
 
-    // the picture IS the stream...
+    // the picture IS the stream ...
     expect(image.getAttribute("src")).toBe(
       "http://127.0.0.1:47511/s/a-capability/frame",
     );
@@ -675,7 +674,7 @@ describe("the code panel", () => {
     API.setAppState({ width: 1000, height: 1000 });
     API.setElements([asElement(panel)]);
 
-    // the panel really does draw the live view...
+    // the panel really does draw the live view ...
     await waitFor(() =>
       expect(
         document.querySelector('[data-testid="code-panel-live-frame"]'),
@@ -684,8 +683,8 @@ describe("the code panel", () => {
 
     // ... and the payload carries NO frame at all. The payload is saved with
     // the document, so a frame in it would put the teacher's screen into the
-    // .excalidraw file. And since wave 5i the frame does not even
-    // reach the app: it is served as an MJPEG stream.
+    // .excalidraw file. And since the live view became a stream the frame
+    // does not even reach the app: it is served as an MJPEG stream.
     const state = readCodePanelState(panel.panel);
 
     expect(JSON.stringify(state)).not.toContain("a-frame-in-base64");
@@ -764,7 +763,7 @@ describe("the code panel", () => {
     API.setAppState({ width: 1000, height: 1000 });
     API.setElements([asElement(panel)]);
 
-    // the TEXT is the fallback: the mirrored code is still there...
+    // the TEXT is the fallback: the mirrored code is still there ...
     await waitFor(() =>
       expect(
         document.querySelector('[data-testid="code-panel-source"] .cm-editor'),
@@ -805,7 +804,7 @@ describe("the code panel", () => {
     API.setAppState({ width: 1000, height: 1000 });
     API.setElements([asElement(panel)]);
 
-    // the TEXT is the fallback: the mirrored code is still there...
+    // the TEXT is the fallback: the mirrored code is still there ...
     await waitFor(() =>
       expect(
         document.querySelector('[data-testid="code-panel-source"] .cm-editor'),
@@ -852,7 +851,7 @@ describe("the code panel", () => {
       ).not.toBeNull(),
     );
 
-    // the editor is there...
+    // the editor is there ...
     expect(
       document.querySelector('[data-testid="code-panel-source"] .cm-editor'),
     ).not.toBeNull();
@@ -887,7 +886,7 @@ describe("the code panel's view", () => {
     API.setAppState({ width: 1000, height: 1000 });
     API.setElements([asElement(panel)]);
 
-    // a live frame arrives - the bridge is streaming the editor's window...
+    // a live frame arrives - the bridge is streaming the editor's window ...
     act(() => {
       setPanelCapture(panel.id, {
         status: "live",
@@ -1006,9 +1005,9 @@ describe("the code panel's view", () => {
     // a NEW panel: its payload carries no choice, so it follows the default
     const fresh = codePanel(connectedState());
 
-    // and a panel that ALREADY exists: wave 5h wrote `view: "editor"` into
-    // every payload, and that was the OLD default - not a choice the teacher
-    // ever made
+    // and a panel that ALREADY exists: an earlier version wrote `view:
+    // "editor"` into every payload, and that was the OLD default - not a
+    // choice the teacher ever made
     const existing = codePanel(connectedState(), {
       panel: {
         ...codePanelContent(connectedState(), "session-1"),
@@ -1021,7 +1020,7 @@ describe("the code panel's view", () => {
     API.setAppState({ width: 1000, height: 1000 });
     API.setElements([asElement(fresh), asElement(existing)]);
 
-    // the bridge is streaming the editor's window...
+    // the bridge is streaming the editor's window ...
     act(() => {
       for (const panel of [fresh, existing]) {
         setPanelCapture(panel.id, {
@@ -1085,7 +1084,7 @@ describe("the code panel's view", () => {
     });
 
     // the panel STILL shows the editor: the teacher's choice survived the
-    // reload (promise, and)
+    // reload (the promise, and the)
     await waitFor(() =>
       expect(
         document.querySelector('[data-testid="code-panel-source"] .cm-editor'),
@@ -1136,7 +1135,7 @@ describe("the code panel's view", () => {
       ).not.toBeNull(),
     );
 
-    // the editor asked the registry for the FILE's language...
+    // the editor asked the registry for the FILE's language ...
     await waitFor(() => expect(asked).toContain("python"), { timeout: 10000 });
 
     // ... and it did NOT ask for the mermaid grammar. The mermaid grammar
@@ -1199,7 +1198,7 @@ describe("the code panel's view", () => {
       ).not.toBeNull(),
     );
 
-    // the text is there...
+    // the text is there ...
     expect(
       document.querySelector('[data-testid="code-panel-source"] .cm-content')
         ?.textContent,
@@ -1349,7 +1348,7 @@ describe("the code panel's view", () => {
 
     const overlay = document.querySelector('[data-testid="panel-overlay"]');
 
-    // the state of the connection is said...
+    // the state of the connection is said ...
     const status = overlay!.querySelector('[data-testid="code-panel-status"]');
 
     expect(status).not.toBeNull();
@@ -1432,7 +1431,7 @@ describe("the live editor is a real editor", () => {
 
     expect(copy).not.toBeNull();
 
-    // the teacher selects the mirrored text...
+    // the teacher selects the mirrored text ...
     const view = EditorView.findFromDOM(host as HTMLElement);
 
     expect(view).not.toBeNull();
@@ -1503,7 +1502,7 @@ describe("the live editor is a real editor", () => {
     expect(picker).not.toBeNull();
     expect(picker.value).toBe("python");
 
-    // the teacher chooses another language...
+    // the teacher chooses another language ...
     act(() => {
       fireEvent.change(picker, { target: { value: "javascript" } });
     });
@@ -1522,7 +1521,7 @@ describe("the live editor is a real editor", () => {
       ).toBe("javascript"),
     );
 
-    // the choice is the panel's own: it is in the panel's payload...
+    // the choice is the panel's own: it is in the panel's payload ...
     const element = window.h.elements.find(
       (candidate) => candidate.id === panel.id,
     ) as ExcalidrawPanelElement;
@@ -1581,7 +1580,7 @@ describe("the live editor is a real editor", () => {
       fireEvent.click(zoomIn);
     });
 
-    // the editor is bigger...
+    // the editor is bigger ...
     await waitFor(() => expect(host.getAttribute("data-zoom")).toBe("1.25"));
 
     expect(

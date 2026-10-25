@@ -108,7 +108,7 @@ function subset(
   //     if (typeof value === "number") {
   //       // Simple case: Pin/instance the variation axis to a single value
   //       if (
-  // !harfbuzzJsWasm.hb_subset_input_pin_axis_location(
+  //         !harfbuzzJsWasm.hb_subset_input_pin_axis_location(
   //           input,
   //           face,
   //           HB_TAG(axisName),
@@ -134,14 +134,14 @@ function subset(
   //         );
   //       }
   //       if (
-  // !harfbuzzJsWasm.hb_subset_input_set_axis_range(
+  //         !harfbuzzJsWasm.hb_subset_input_set_axis_range(
   //           input,
   //           face,
   //           HB_TAG(axisName),
   //           value.min,
   //           value.max,
   //           // An explicit NaN makes harfbuzz use the existing default value, clamping to the new range if necessary
-  //           value.default?? NaN,
+  //           value.default ?? NaN,
   //         )
   //       ) {
   //         harfbuzzJsWasm.hb_face_destroy(face);

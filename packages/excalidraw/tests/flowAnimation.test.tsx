@@ -241,7 +241,8 @@ describe("the flow animation", () => {
   });
 
   it("a cycle is broken, not refused", () => {
-    // the owner's own words are "this entire thing is in a loop"
+    // the requirement for words are "this entire thing is in a
+    // loop"
     const a = box({ id: "A", x: 0, y: 0 });
     const b = box({ id: "B", x: 200, y: 0 });
 

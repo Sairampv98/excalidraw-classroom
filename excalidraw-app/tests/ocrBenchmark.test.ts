@@ -7,8 +7,7 @@
  * and WHAT it was measured with, and an engine measured elsewhere carries its
  * numbers, its Python and its date.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { readFileSync } from "node:fs";
@@ -58,7 +57,7 @@ describe("the OCR benchmark record", () => {
     const paddle = record().engines.paddle;
 
     // the measurement IS in the record, and it is marked as taken elsewhere:
-    // the owner's Python 3.12.10, not this benchmark's Python 3.14 (which
+    // the teacher's Python 3.12.10, not this benchmark's Python 3.14 (which
     // has no paddle wheel at all)
     expect(paddle.measured).toBeTruthy();
     expect(paddle.measured!.where).not.toBe("this machine");
@@ -71,7 +70,7 @@ describe("the OCR benchmark record", () => {
 
     // and its numbers: the first read (the fast path crashed and the model
     // was rebuilt), the second read (the model that works was reused) and
-    // the shipped sidecar inside the built.vsix
+    // the shipped sidecar inside the built .vsix
     expect(paddle.measured!.firstReadMs).toBe(36086);
     expect(paddle.measured!.secondReadMs).toBe(30601);
     expect(paddle.measured!.shippedSidecarMs).toBe(34668);

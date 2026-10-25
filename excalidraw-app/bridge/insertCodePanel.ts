@@ -26,9 +26,9 @@ export const CODE_PANEL_SESSION_ID = "vscode-bridge";
 /**
  * Inserts the code panel at the middle of what the teacher can see.
  *
- * Its size is a **share of the visible canvas**, not a constant: the
- * owner asked for the editor's view to cover half the canvas, and a fixed
- * 520x380 was a fifth of it.
+ * Its size is a **share of the visible canvas**, not a constant: Provides
+ * the editor's view to cover half the canvas, and a fixed 520x380 was a
+ * fifth of it.
  */
 export const insertCodePanel = (api: ExcalidrawImperativeAPI): void => {
   const appState = api.getAppState();

@@ -4,11 +4,11 @@ import { join } from "node:path";
 /**
  * The **virtual display** - the screen the students see.
  *
- * The owner approved this in one line: *"yes work on the virtual display+input
- * panel"*. The idea is that **the screen the students see and the controls the
- * teacher uses are different surfaces**: today the presenter view takes over
- * the teacher's own desktop, so they cannot keep their notes or their IDE in
- * front of them while presenting.
+ * The teacher approved this in one line: *"yes work on the virtual
+ * display+input panel"*. The idea is that **the screen the students see and
+ * the controls the teacher uses are different surfaces**: today the presenter
+ * view takes over the teacher's own desktop, so they cannot keep their notes
+ * or their IDE in front of them while presenting.
  *
  * This module is the extension's half of that:
  *
@@ -29,8 +29,7 @@ import { join } from "node:path";
  *    and left its monitor detached must never be told "there is no virtual
  *    display" - they are one click away from the thing they asked for, and the
  *    reason tells them which click it is.
- *  - **the window is found BY RULE** (the same rule the capture uses,,
- *): the presenter's window is located by its title, never by a
+ *  - **the window is found BY RULE** (the same rule the capture uses): the presenter's window is located by its title, never by a
  *    remembered handle. A window on a virtual display is found exactly like a
  *    window on the desktop - and so is the **editor's own window**,
  *    whose title carries the workspace name.

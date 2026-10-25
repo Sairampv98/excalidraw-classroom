@@ -665,7 +665,8 @@ describe("FilesTab video drags", () => {
 
     expect(row).toBeTruthy();
 
-    // the video row is draggable — that was the whole of the owner's complaint
+    // the video row is draggable — that was the whole of the teacher's
+    // complaint
     expect(row.getAttribute("draggable")).toBe("true");
 
     fireDragStart(row, stubDataTransfer());

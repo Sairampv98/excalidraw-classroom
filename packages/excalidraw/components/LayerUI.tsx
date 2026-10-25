@@ -619,7 +619,7 @@ const LayerUI = ({
                * canvas used to be sized to the whole container and its
                * right-hand controls - the toolbar's right end, the zoom
                * actions - landed **underneath** the sidebar, where they could
-               * only be reached by closing it (the owner's exact report).
+               * only be reached by closing it (the teacher's exact report).
                *
                * The reservation is the sidebar's own width, so it tracks the
                * sidebar being opened and closed. It used to be given only when

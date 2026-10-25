@@ -1,7 +1,7 @@
 /**
- * The app side of the page document model.
+ * The app side of the page document model —...
  *
- * The library side (.. and) lives in
+ * The library side (..) lives in
  * `packages/excalidraw/tests/pages.test.tsx`. This file covers what only the
  * *app* can show:
  *
@@ -248,7 +248,7 @@ describe("page bar", () => {
     // the deleted page's content goes with it
     expect(h.elements[0].isDeleted).toBe(true);
 
-    // the page that followed moved one pitch to the left...
+    // the page that followed moved one pitch to the left ...
     expect(getPageRect(h.state.pages, "page-3").x).toBeLessThan(
       getPageRect(pages, "page-3").x,
     );
@@ -283,7 +283,7 @@ describe("page bar", () => {
     expect(h.state.pages[3].id).toBe("page-3");
     expect(h.state.currentPageId).toBe(h.state.pages[2].id);
 
-    // the pages that followed moved one pitch to the right...
+    // the pages that followed moved one pitch to the right ...
     expect(getPageRect(h.state.pages, "page-3").x).toBeGreaterThan(
       getPageRect(pages, "page-3").x,
     );
@@ -486,7 +486,7 @@ describe("page bar", () => {
       h.elements = [onPage1, onPage2];
     });
 
-    // scale the content down: that page's content geometry is halved...
+    // scale the content down: that page's content geometry is halved ...
     fireEvent.click(getByLabelText("Scale this page's content down"));
 
     expect(h.elements[0].x).toBe(200);

@@ -10,9 +10,9 @@
  * payload as plain data. The bridge never sees a sidecar.
  *
  * And the caption itself is an **ordinary text element** beside the panel: the
- * owner's ask (2026-10-21) — the caption is outside the player, it is editable
- * like any other text, and a video **without** captions gets **no** caption
- * element at all.
+ * teacher's ask (2026-10-21) — the caption is outside the player, it is
+ * editable like any other text, and a video **without** captions gets **no**
+ * caption element at all.
  */
 
 import { newPanelElement, syncInvalidIndices } from "@excalidraw/element";

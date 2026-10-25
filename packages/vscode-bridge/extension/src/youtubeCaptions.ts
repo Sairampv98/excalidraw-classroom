@@ -6,8 +6,8 @@
  *
  *  - **tier one** — the official **Data API v3**, with the teacher's own key
  *    (`excalidraw-bridge.youtubeApiKey`). A versioned API, and for the
- *    teacher's **own** channel the captions are authorised by the owner, so
- *    this tier really works;
+ *    teacher's **own** channel the captions are authorised by the teacher,
+ *    so this tier really works;
  *  - **tier two** — the public **`timedtext`** endpoint. Best effort, and in
  *    practice **empty**: measured on 2026-10-24 from this machine, eight
  *    probes of four videos (with and without `kind=asr`) gave eight empty

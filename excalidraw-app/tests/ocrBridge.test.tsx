@@ -7,10 +7,9 @@
  *
  * the panel's sentence names the engine the panel will **use** - the
  *         one the teacher picked - and not the extension's own default
- *.
+ * .
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -441,10 +440,10 @@ describe("the crop-and-read action, and the engine ladder", () => {
       });
     });
 
-    // which engine ran...
+    // which engine ran ...
     expect(result.current.message).toContain("tesseract");
 
-    // ... how long it took...
+    // ... how long it took ...
     expect(result.current.message).toContain("278 ms");
 
     // ... and why the one before it did not: a fall-back
@@ -546,7 +545,7 @@ describe("the crop-and-read action, and the engine ladder", () => {
     API.setAppState({ width: 1000, height: 1000 });
     API.setSelectedElements([element]);
 
-    // the control says it is reading...
+    // the control says it is reading ...
     expect(
       container.querySelector('[data-testid="panel-ocr-button"]'),
     ).not.toBeNull();

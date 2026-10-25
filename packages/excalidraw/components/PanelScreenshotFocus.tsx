@@ -18,13 +18,12 @@ import type { PanelScreenshotCrop } from "../scene/panelScreenshot";
 /**
  * The **focus state** of a screenshot.
  *
- * The owner asked for the picture to come forward: "after clicking this button
- * the preview of the screenshot should appear as if it has moved up in the z
- * axis and the canvas/editor has moved back in the z - axis (visual effect only
- * darkens background, leaving the screenshot to become the thing in focus with
- * those 3 options i mentioned, also add a cropping tool that is turned on by
- * default so we can crop the screenshot and revert the crop back one step
- * aswell)".
+ * Provides the picture to come forward: "after clicking this button the preview
+ * of the screenshot should appear as if it has moved up in the z axis and the
+ * canvas/editor has moved back in the z - axis (visual effect only darkens
+ * background, leaving the screenshot to become the thing in focus with those 3
+ * options i mentioned, also add a cropping tool that is turned on by default so
+ * we can crop the screenshot and revert the crop back one step aswell)".
  *
  * So the capture does not merely produce a picture: it opens a **focus state**.
  * The canvas behind is dimmed, the picture is presented in front of it, and the
@@ -50,7 +49,7 @@ import type { PanelScreenshotCrop } from "../scene/panelScreenshot";
  *
  * The focus state is **two** planes. The dimming steps the **canvas** back, and
  * the picture comes **forward**: over the interactive canvas and over the
- * panels. The owner saw the crop handles and could not move them - "i can see
+ * panels. The teacher saw the crop handles and could not move them - "i can see
  * the handles to crop the image but not do anything to it" - because the whole
  * focus state was drawn *under* the interactive canvas, which took the pointer.
  * The dimming stays **under** the panels on purpose: a panel dims its own
@@ -60,7 +59,7 @@ import type { PanelScreenshotCrop } from "../scene/panelScreenshot";
  *
  * The crop is the **first** step and the target is the **last** one. The
  * picture in front is there for the whole flow, so the teacher may crop it
- * again at any point - which is what the owner's own flows describe.
+ * again at any point - which is what the teacher's own flows describe.
  */
 export const PanelScreenshotFocus = ({
   panels,

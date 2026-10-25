@@ -1,8 +1,7 @@
 /**
  * The **MJPEG stream** - the live view of the editor's own window.
  *
- * The rows named in the test titles are the rows of SPEC.md - the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  *
  * The frames do not travel over the websocket: the extension serves them from
  * the HTTP server it already has, and the panel plays that stream in a plain
@@ -28,7 +27,7 @@ import { snapshotPath } from "../extension/src/stream";
 
 import { RawWsClient } from "./helpers/rawWsClient";
 
-// A fixture, not a credential: the name says so, and the kit's secret scan
+// A fixture, not a credential: the name says so, and the secret scan
 // recognises a `test-` prefixed value as the placeholder it is.
 const TOKEN = "test-per-session-token-that-must-never-leak";
 

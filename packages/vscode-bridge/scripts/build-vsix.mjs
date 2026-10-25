@@ -226,9 +226,9 @@ const depsRoot =
  *
  * Without `--deps` it is found the way Node finds a package: the package's own
  * `node_modules` first, then the one above it, and so on - NOT a fixed
- * directory. That matters for a worktree with no `node_modules` of its own
- * (the kit's throwaway worktree, for one): it walks up and finds the
- * repository's, which is where the engine is installed.
+ * directory. That matters for a worktree with no `node_modules` of its own (a
+ * throwaway worktree, for one): it walks up and finds the repository's, which
+ * is where the engine is installed.
  */
 const engineDir = () =>
   depsFlagIndex !== -1 && process.argv[depsFlagIndex + 1]

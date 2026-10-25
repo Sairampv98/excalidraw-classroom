@@ -28,9 +28,9 @@ html
 meta*.json
 .claude
 
-# scratch sandbox from an earlier handwriting-recognition experiment:
-# 554 files / ~285 MB of ONNX models + its own node_modules. Not part of the
-# excalidraw fork — see HANDOVER.md §0.
+# scratch sandbox from an earlier handwriting-recognition experiment: 554
+# files / ~285 MB of ONNX models + its own node_modules. Not part of the
+# excalidraw fork.
 htr-sandbox/
 
 # agent session scratch artifacts (not part of the fork)
@@ -42,13 +42,10 @@ htr-sandbox/
 # of a benchmark run, not a source file)
 *.traineddata
 
-# isolated feature worktrees (see HANDOVER.md / superpowers:using-git-worktrees)
+# isolated feature worktrees
 .worktrees/
 
-# TINS kit reference material (inputs to the retrofit, not project files)
-tins-kit-old-vs-new.zip
-TINS-PLAYBOOK-PACK.zip
-TINS-PLAYBOOK.md
+# Reference material for an earlier migration, not project files
 token-saving-harness-vscode.md
 
 # local search harness for VS Code / Copilot (machine-specific)
@@ -57,11 +54,8 @@ token-saving-harness-vscode.md
 __pycache__/
 *.pyc
 
-# TINS runtime: the kit itself (.tins/kit) IS tracked. These are outputs.
-.tins/merge-tmp-*/
-.tins/state-*.tap
-.tins/state-gate-summary.txt
-.tins/state-gate.lock
+# Tooling runtime: the tool itself is tracked; its outputs are not. These
+# are outputs.
 
 # the built setup, on Windows - rebuilt by installer/build-setup-exe.mjs
 /setup.exe

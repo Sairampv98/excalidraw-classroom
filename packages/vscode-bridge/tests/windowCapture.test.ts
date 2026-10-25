@@ -1,8 +1,7 @@
 /**
  * The capture of the editor's **own window**.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { spawn } from "node:child_process";
@@ -262,7 +261,7 @@ describe("the capture of the editor's own window", () => {
       },
     });
 
-    // the helper is spawned ONCE...
+    // the helper is spawned ONCE ...
     expect(calls).toHaveLength(1);
     expect(calls[0].command).toBe("powershell.exe");
 
@@ -485,7 +484,7 @@ describe("the capture of the editor's own window", () => {
     expect(script).toContain("HEADER ");
     expect(script).toContain("GetBytes([int]$bytes.Length)");
 
-    // and the extension's manifest carries the setting...
+    // and the extension's manifest carries the setting ...
     const manifest = JSON.parse(
       readFileSync(join(packageRoot, "extension", "package.json"), "utf8"),
     );
@@ -497,7 +496,7 @@ describe("the capture of the editor's own window", () => {
     ).toBeTruthy();
 
     // ... and the extension's only dependency is the OCR engine, which ships
-    // inside the.vsix: the capture itself still needs nothing
+    // inside the .vsix: the capture itself still needs nothing
     expect(Object.keys(manifest.dependencies ?? {})).toEqual(["tesseract.js"]);
   });
 
@@ -599,7 +598,7 @@ describe("the capture of the editor's own window", () => {
 
     // An EMPTY picture is never published: the bytes go out only after the
     // picture has been found to be a picture. A black rectangle is not a live
-    // view, and it is the black rectangle the owner reported.
+    // view, and it is the black rectangle the teacher reported.
     const write = loop.indexOf(
       "$stream.Write([BitConverter]::GetBytes([int]$bytes.Length), 0, 4)",
     );
@@ -684,12 +683,12 @@ describe("the capture of the editor's own window", () => {
 
     expect(helpers).toHaveLength(1);
 
-    // the helper DIES...
+    // the helper DIES ...
     helpers[0].emit("exit", 2, null);
 
     // ... and it is started again. One dead helper must not be dead for the
-    // rest of the session - that was the owner's "it works exactly twice and
-    // then stops".
+    // rest of the session - that was the teacher's "it works exactly twice
+    // and then stops".
     await until(() => helpers.length === 2);
 
     expect(supervisor.isRunning()).toBe(true);

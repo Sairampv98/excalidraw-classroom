@@ -297,7 +297,7 @@ Dragging a video row onto the canvas puts a loading wireframe where the player w
 
 **You should see** - Three engines, each with its measured speed shown as a colour - green for the fastest, amber for the one in the middle, red for the slowest: **indra**, **tesseract** and **paddle**. **tesseract** needs no Python; **indra** and **paddle** do.
 
-**If it is not that** - The picker offers only one engine: the other two are not installed. A read says _indra was not used: the OCR sidecar is not running._: indra needs its sidecar, and the sidecar needs Python. A read says _paddle was not used:..._: paddle needs Python as well. **tesseract** is the one that works on a machine with no Python at all.
+**If it is not that** - The picker offers only one engine: the other two are not installed. A read says _indra was not used: the OCR sidecar is not running._: indra needs its sidecar, and the sidecar needs Python. A read says _paddle was not used: ..._: paddle needs Python as well. **tesseract** is the one that works on a machine with no Python at all.
 
 **See it** - [03 - crop and read](../clips/03-crop-and-read.mp4)
 

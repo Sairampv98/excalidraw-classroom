@@ -82,10 +82,9 @@ export const captureVideoFrame = (
 /**
  * A frame of a video, taken **after** the video was paused.
  *
- * The owner asked for the paused frame: "for video that should pause the video".
- * So the pause comes **first**, and the frame is drawn after it - a frame
- * drawn while the video is still running is a frame of a moment the teacher
- * never saw.
+ * Provides the paused frame: "for video that should pause the video". So the
+ * pause comes **first**, and the frame is drawn after it - a frame drawn while
+ * the video is still running is a frame of a moment the teacher never saw.
  *
  * The pause is the video's own: `pause()` is the only way to hold a frame, and
  * it is what the teacher would have done with the space bar.

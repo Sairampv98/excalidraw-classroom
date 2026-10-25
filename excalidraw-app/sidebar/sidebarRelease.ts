@@ -4,9 +4,9 @@
  * never reach the canvas. It also keeps the keyboard focus, so the arrow keys
  * and Delete go to the sidebar instead of the canvas.
  *
- * The rule the owner asked for: once the user works on the canvas, the canvas
- * has the interaction. The sidebar gives it up on a click on the canvas and
- * takes it back when the pointer comes back over it.
+ * The rule the teacher asked for: once the user works on the canvas, the
+ * canvas has the interaction. The sidebar gives it up on a click on the
+ * canvas and takes it back when the pointer comes back over it.
  */
 
 /** the sidebar island the library renders — the overlay above the canvas */

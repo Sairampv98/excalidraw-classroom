@@ -19,14 +19,14 @@ export default defineConfig(({ mode }) => {
       port: Number(envVars.VITE_APP_PORT || 3000),
       // open the browser
       open: true,
-      // This dev server watches the whole repository. The TINS kit builds a
-      // throwaway worktree inside the repository when it merges a task, and
-      // without this the watcher sees that checkout appear and disappear:
-      // vite restarts, and a restart that lands mid-request kills the server
-      // with ERR_CLOSED_SERVER. These paths are scratch, not source.
+      // This dev server watches the whole repository. The task tooling
+      // builds a throwaway worktree inside the repository when it merges a
+      // task, and without this the watcher sees that checkout appear and
+      // disappear: vite restarts, and a restart that lands mid-request kills
+      // the server with ERR_CLOSED_SERVER. These paths are scratch, not
+      // source.
       watch: {
         ignored: [
-          "**/.tins/**",
           "**/.worktrees/**",
           "**/htr-sandbox/**",
           "**/.mavis-snapbak/**",

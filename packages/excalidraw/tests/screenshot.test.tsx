@@ -2,8 +2,7 @@
  * The **screenshot** of a panel: the capture, and the three choices that
  * follow it.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { readFileSync } from "node:fs";
@@ -318,7 +317,7 @@ describe("the screenshot of a panel", () => {
   });
 
   it("the screenshot button's inline style keeps its width and cannot be shrunk", async () => {
-    // The button collapsed on the owner's screen on 2026-10-22: it measured
+    // The button collapsed on the teacher's screen on 2026-10-22: it measured
     // ZERO pixels wide, because it is a flex item of a tight header, its
     // content is an `<svg>` with no intrinsic width, and the stylesheet sized
     // that svg in percentages of the button.
@@ -564,7 +563,8 @@ describe("the screenshot of a panel", () => {
   });
 
   it("a video panel carries a screenshot button", async () => {
-    // The owner's item 5.4: "video does not get a camera icon at all".
+    // The teacher's item 5.4: "video does not get a camera icon at
+    // all".
     //
     // The camera is a control that acts on the **panel**, so it lives in the
     // panel's PROPERTIES - for every kind of panel. It is not on the
@@ -656,8 +656,8 @@ describe("the screenshot of a panel", () => {
   });
 
   it("a pending screenshot dims the canvas and presents the preview in front", async () => {
-    // The owner's z-axis: the picture comes forward and the canvas behind it
-    // steps back.
+    // The teacher's z-axis: the picture comes forward and the canvas behind
+    // it steps back.
     const { container } = await render(
       <Excalidraw panelScreenshot={{ onCapture: () => {} }} />,
     );
@@ -719,8 +719,8 @@ describe("the screenshot of a panel", () => {
   });
 
   it("the crop can be reverted once to the uncropped capture", async () => {
-    // The owner asked for a cropping tool "that is turned on by default" and a
-    // crop that can be reverted "back one step".
+    // Provides a cropping tool "that is turned on by default" and a crop that
+    // can be reverted "back one step".
     const { container } = await render(
       <Excalidraw panelScreenshot={{ onCapture: () => {} }} />,
     );

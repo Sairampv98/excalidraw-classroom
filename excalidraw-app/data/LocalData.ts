@@ -1,5 +1,5 @@
 /**
- * This file deals with saving data state (appState, elements, images,...)
+ * This file deals with saving data state (appState, elements, images, ...)
  * locally to the browser.
  *
  * Notes:

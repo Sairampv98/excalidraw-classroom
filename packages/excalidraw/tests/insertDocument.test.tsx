@@ -1,8 +1,9 @@
 /**
  * Inserting a document into the current canvas (..).
  *
- * The fork owner's request: "if I open one excalidraw file and then open another
- * excalidraw file in the same canvas, the second should merge into the first".
+ * The fork teacher's request: "if I open one excalidraw file and then open
+ * another excalidraw file in the same canvas, the second should merge into the
+ * first".
  *
  * Opening a file **replaces** the canvas and keeps doing so — the merge is an
  * explicit action ("File > Insert document..."), so what is checked here is the

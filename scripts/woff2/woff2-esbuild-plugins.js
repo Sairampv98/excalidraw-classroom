@@ -9,7 +9,7 @@ const which = require("which");
 /**
  * Custom esbuild plugin to:
  * 1. inline all woff2 (url and relative imports) as base64 for server-side use cases (no need for additional font fetch; works in both esm and commonjs)
- * 2. convert all the imported fonts (including those from cdn) at build time into.ttf (since Resvg does not support woff2, neither inlined dataurls - https://github.com/RazrFalcon/resvg/issues/541)
+ * 2. convert all the imported fonts (including those from cdn) at build time into .ttf (since Resvg does not support woff2, neither inlined dataurls - https://github.com/RazrFalcon/resvg/issues/541)
  *    - merging multiple woff2 into one ttf (for same families with different unicode ranges)
  *    - deduplicating glyphs due to the merge process
  *    - merging fallback font for each

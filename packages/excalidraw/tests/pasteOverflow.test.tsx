@@ -2,12 +2,12 @@
  * The paste that does not fit.
  *
  * The fork's page model clamps the camera to the page's rect, so content that
- * lies outside the page is in the document but unreachable — the owner put it
- * exactly like this: "whenever I paste a long content it goes beyond the page
- * and is not visible or accessible anymore".
+ * lies outside the page is in the document but unreachable — the teacher put
+ * it exactly like this: "whenever I paste a long content it goes beyond the
+ * page and is not visible or accessible anymore".
  *
  * The paste now *offers* the user what to do with the text that does not fit
- *, the fit is decided per line, and the text that is left over
+ * , the fit is decided per line, and the text that is left over
  * goes back to the clipboard.
  *
  * The assertions go through the library's own page layout (`getPageRect`) and

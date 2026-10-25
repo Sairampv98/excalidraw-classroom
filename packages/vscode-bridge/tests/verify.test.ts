@@ -250,7 +250,7 @@ describe("the feature checklist", () => {
 
 describe("the report page", () => {
   it("the report page never asks for the session token", () => {
-    // it says the token is a secret and must never be sent...
+    // it says the token is a secret and must never be sent ...
     expect(report).toMatch(/token is a secret/i);
     expect(report).toMatch(/never put it in a report/i);
     // ... and it never asks the reader for one

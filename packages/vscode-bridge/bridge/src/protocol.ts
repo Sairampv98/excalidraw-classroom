@@ -247,7 +247,7 @@ export const isPresenterCommand = (value: unknown): value is PresenterCommand =>
  *
  *  - `"api"` - the official **Data API v3**, with the teacher's own key. A
  *    versioned API, and for the teacher's own channel the captions are
- *    authorised by the owner, so this tier really works;
+ *    authorised by the teacher, so this tier really works;
  *  - `"public"` - the public **`timedtext`** endpoint. Best effort, and often
  *    empty for auto-generated captions;
  *  - `"none"` - there are no captions, and the answer says why.
@@ -289,7 +289,7 @@ export type BridgeMessage =
       version: string;
       workspace: string;
       /**
-       * Which editor this is: "Visual Studio Code", "VSCodium",...
+       * Which editor this is: "Visual Studio Code", "VSCodium", ...
        *
        * The port is **fixed**, so with two editors running only one of
        * them holds it - and the app reaches that one, not necessarily the one

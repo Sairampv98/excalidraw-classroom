@@ -18,10 +18,10 @@ import type { PanelMirrorRegion } from "../scene/panelMirror";
 /**
  * The **picker**: the teacher's own control for what is mirrored.
  *
- * The owner asked for the whole editor's window to be there when they choose:
- * _"it should show me the full vscode window... only when i click change what
- * is mirrored button"_ - so the picker shows the **whole** window, exactly as a
- * screenshot of it would look, with the crop on it.
+ * Provides the whole editor's window to be there when they choose: _"it should
+ * show me the full vscode window ... only when i click change what is mirrored
+ * button"_ - so the picker shows the **whole** window, exactly as a screenshot
+ * of it would look, with the crop on it.
  *
  * The crop is the teacher's own: they draw it, and they can draw it again as
  * often as they like. The choice is only made when they say so - the

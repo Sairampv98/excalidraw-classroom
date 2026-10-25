@@ -1028,14 +1028,14 @@ describe("multiple selection", () => {
   //     gap?: number;
   //     focus?: number;
   //   } = {
-  // ...leftBoundArrow.endBinding,
+  //     ...leftBoundArrow.endBinding,
   //   } as PointBinding;
   //   const rightArrowBinding: {
   //     elementId: string;
   //     gap?: number;
   //     focus?: number;
   //   } = {
-  // ...rightBoundArrow.endBinding,
+  //     ...rightBoundArrow.endBinding,
   //   } as PointBinding;
   //   delete rightArrowBinding.gap;
 

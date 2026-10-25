@@ -68,7 +68,7 @@ export interface CodeMirrorEditorProps {
   testId?: string;
   /**
    * The language of the text, as VS Code names it (`python`, `java`,
-   * `javascript`, `cpp`,...).
+   * `javascript`, `cpp`, ...).
    *
    * The grammar comes from the **registry** (`../codeLanguages`), which the
    * HOST fills - the library has no grammar dependencies of its own. A
@@ -223,7 +223,7 @@ const vsCodeDarkHighlight = HighlightStyle.define([
     color: VS_CODE_DARK_TOKEN_COLORS.type,
   },
   { tag: tags.tagName, color: VS_CODE_DARK_TOKEN_COLORS.tag },
-  // `def`, `class`, `import`... - VS Code's semantic highlighting paints
+  // `def`, `class`, `import` ... - VS Code's semantic highlighting paints
   // these as KEYWORDS, so they are purple like every other keyword.
   {
     tag: [tags.definitionKeyword, tags.moduleKeyword],
@@ -292,7 +292,7 @@ const getErrorLineExtension = (
 // It is a **font size**, not a transform: a transform would scale the drawing
 // without the layout, and the editor would then think it has more room than
 // it has. A bigger font is a bigger editor - which is what a zoom is, and
-// what the owner asked for ("requires more scrolling is all").
+// what Provides ("requires more scrolling is all").
 //
 // The size is relative (`em`), so the editor keeps the size it had at `1` and
 // the zoom is a multiple of it.

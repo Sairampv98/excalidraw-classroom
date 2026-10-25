@@ -114,9 +114,9 @@ export const DocumentViewer = ({
   // old one.
   //
   // The cancel is deliberately NOT run on unmount. Clicking the canvas closes
-  // the sidebar, which unmounts this viewer — and the owner's own sequence is
-  // "Copy code", click the canvas, paste. A stale arm is harmless anyway: the
-  // clipboard guard refuses one whose text is no longer the stashed code.
+  // the sidebar, which unmounts this viewer — and the teacher's own sequence
+  // is "Copy code", click the canvas, paste. A stale arm is harmless anyway:
+  // the clipboard guard refuses one whose text is no longer the stashed code.
   useEffect(() => {
     cancelCodePaste();
   }, [entry]);

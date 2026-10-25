@@ -162,7 +162,7 @@ const CONCAT_BUFFERS_VERSION = 1;
 /** how many bytes we use to encode how many bytes the next chunk has.
  * Corresponds to DataView setter methods (setUint32, setUint16, etc).
  *
- * NOTE! values must not be changed, which would be backwards incompatible!
+ * NOTE ! values must not be changed, which would be backwards incompatible !
  */
 const VERSION_DATAVIEW_BYTES = 4;
 const NEXT_CHUNK_SIZE_DATAVIEW_BYTES = 4;
@@ -217,7 +217,7 @@ function dataView(
  *   DATA chunk 1 (up to 2^32 bits)
  *   LENGTH chunk 2 (4 bytes)
  *   DATA chunk 2 (up to 2^32 bits)
- * ...
+ *   ...
  * ]
  *
  * @param buffers each buffer (chunk) must be at most 2^32 bits large (~4GB)

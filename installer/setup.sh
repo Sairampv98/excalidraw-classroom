@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #
-# The setup: check what this machine is missing, and install it (D-152,
-# AC-186).
+# The setup: check what this machine is missing, and install it.
 #
 # This is the script a teacher or a student runs on macOS or Linux. It does
 # three things, in this order:

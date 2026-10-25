@@ -228,7 +228,7 @@ $fullScreenModalBreakpoint: 600px;
   .ttd-dialog-input--codemirror {
     padding: 0;
     overflow: hidden;
-    // Override height:100% from.ttd-dialog-input — use flex sizing
+    // Override height:100% from .ttd-dialog-input — use flex sizing
     // so the editor fills remaining space without overflowing the panel
     height: 0;
     flex: 1 1 0;

@@ -6,7 +6,7 @@ import { installSidebarRelease } from "../sidebar/sidebarRelease";
 
 /**
  * The sidebar is an overlay on the canvas, so it takes the pointer and the
- * keyboard while it is open. The owner's rule is that the canvas has the
+ * keyboard while it is open. The teacher's rule is that the canvas has the
  * interaction once the user works on it: the sidebar gives the wheel and the
  * keyboard up, and takes them back when the pointer comes back over it.
  */

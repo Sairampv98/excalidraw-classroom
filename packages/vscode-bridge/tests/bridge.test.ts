@@ -39,7 +39,7 @@ import {
 
 import { RawWsClient } from "./helpers/rawWsClient";
 
-// A fixture, not a credential: the name says so, and the kit's secret scan
+// A fixture, not a credential: the name says so, and the secret scan
 // recognises a `test-` prefixed value as the placeholder it is.
 const TOKEN = "test-per-session-token-that-must-never-leak";
 
@@ -401,8 +401,8 @@ describe("the bridge server", () => {
   });
 
   it("the hello says there is no folder open rather than carrying an empty name", async () => {
-    // The owner's panel said *"Connected to Visual Studio Code ()"* - an empty
-    // pair of brackets, which says nothing.
+    // The teacher's panel said *"Connected to Visual Studio Code ()"* - an
+    // empty pair of brackets, which says nothing.
     const server = await startServer({ workspace: "" });
     const client = await connect(server);
     auth(client);
@@ -1146,7 +1146,7 @@ describe("what is mirrored", () => {
   it("the region can be changed again and again", () => {
     const mirror = createMirrorStore();
 
-    // The teacher crops a region...
+    // The teacher crops a region ...
     expect(mirror.set({ x: 0.1, y: 0.1, width: 0.4, height: 0.4 }, false)).toBe(
       true,
     );
@@ -1157,7 +1157,7 @@ describe("what is mirrored", () => {
       height: 0.4,
     });
 
-    // ... changes their mind...
+    // ... changes their mind ...
     expect(mirror.set({ x: 0.5, y: 0.2, width: 0.3, height: 0.3 }, false)).toBe(
       true,
     );
@@ -1206,7 +1206,7 @@ describe("what is mirrored", () => {
     expect(mirror.state.follow).toBe(false);
     expect(published[0].follow).toBeUndefined();
 
-    // The teacher turns it on...
+    // The teacher turns it on ...
     mirror.set({ x: 0.1, y: 0.1, width: 0.4, height: 0.4 }, true);
     captureState.setMirror(mirror.state);
 

@@ -1,8 +1,7 @@
 /**
  * The **coalesced publish**.
  *
- * The rows named in the test titles are the rows of SPEC.md - the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  *
  * A keystroke in the teacher's editor used to rewrite the whole scene, because
  * the message carries the whole file. The publish is now coalesced: at most

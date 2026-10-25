@@ -5,10 +5,10 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 /**
  * The **MJPEG stream** - the live view of the editor's own window.
  *
- * Wave 5g sent every frame over the websocket as a base64 PNG, and the app
- * paid for it: 154,512 bytes on the wire for a 115,884-byte picture, a JSON
- * parse, a ~154 KB data URL, a DOM swap and a layout - 3.3 ms of main thread
- * and five React re-renders of the panel a second.
+ * An earlier version sent every frame over the websocket as a base64 PNG,
+ * and the app paid for it: 154,512 bytes on the wire for a 115,884-byte
+ * picture, a JSON parse, a ~154 KB data URL, a DOM swap and a layout - 3.3
+ * ms of main thread and five React re-renders of the panel a second.
  *
  * The idea worth taking from WindowStream is its **transport**: the frames are
  * served as `multipart/x-mixed-replace` and the browser plays them in a plain

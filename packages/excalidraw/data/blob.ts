@@ -565,7 +565,7 @@ const normalizedFileSymbol = Symbol("fileNormalized");
 
 /** attempts to detect correct mimeType if none is set, or if an image
  * has an incorrect extension.
- * Note: doesn't handle missing.excalidraw/.excalidrawlib extension  */
+ * Note: doesn't handle missing .excalidraw/.excalidrawlib extension  */
 export const normalizeFile = async (file: File) => {
   // to prevent double normalization (perf optim)
   if ((file as any)[normalizedFileSymbol]) {

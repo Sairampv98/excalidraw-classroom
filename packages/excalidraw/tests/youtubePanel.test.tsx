@@ -2,8 +2,7 @@
  * The **YouTube panel**: the embed, the focus it borrows, and
  * the shape of the panel it lives in.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { readFileSync } from "node:fs";
@@ -93,10 +92,10 @@ const rule = (selector: string): string => {
 /**
  * The row the note took of the panel, when the note was in the flow.
  *
- * The wave 5s live pass measured it in the browser on 2026-10-24: the reason
- * wrapped to five lines of 12px text at the panel's width, and the row it took
- * was 130 of the panel's 270 - so the iframe was 480x140, a 3.45:1 box, and
- * YouTube's own player filled it and stretched the video.
+ * A live pass measured it in the browser on 2026-10-24: the reason wrapped to
+ * five lines of 12px text at the panel's width, and the row it took was 130 of
+ * the panel's 270 - so the iframe was 480x140, a 3.45:1 box, and YouTube's own
+ * player filled it and stretched the video.
  *
  * The row is a **screen** height (the note's text is a screen size), so what it
  * costs in scene units depends on the zoom. The defect does not: a note in the

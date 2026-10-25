@@ -25,8 +25,7 @@ import { registerCodeMirrorLanguage } from "@excalidraw/excalidraw";
  * editor asks for.
  *
  * TypeScript and JSX come free with the JavaScript package, so they are
- * registered too: the owner asked for six languages, and these two cost
- * nothing.
+ * registered too: Provides six languages, and these two cost nothing.
  */
 export const CODE_LANGUAGE_IDS = [
   "javascript",

@@ -11,7 +11,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
  * The **input panel** - the controls the teacher uses, on their **real**
  * screen.
  *
- * The owner approved it in one line: *"yes work on the virtual display+input
+ * The teacher approved it in one line: *"yes work on the virtual display+input
  * panel"*. The idea is that **the screen the students see and the controls the
  * teacher uses are different surfaces**: the presenter's window goes on the
  * virtual display, and the teacher drives it from a small page beside their
@@ -233,7 +233,7 @@ export const panelPage = (): string => `<!doctype html>
   // the bridge.
   // The status line's own name. NOT "status": window.status is a string the
   // browser owns, so a "var status" here would BE that string, and every
-  // status.textContent =... would be silently dropped onto it - the line
+  // status.textContent = ... would be silently dropped onto it - the line
   // would never show anything.
   var statusLine = document.getElementById("status");
 

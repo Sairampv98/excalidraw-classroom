@@ -4,8 +4,7 @@
  * the OCR benchmark is recorded — median and p95, full frame and
  *        subtitle crop.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -192,8 +191,8 @@ describe("the OCR benchmark", () => {
       ),
     );
 
-    // the engine ANSWERED: the crash the owner hit became a working read,
-    // not a dead engine
+    // the engine ANSWERED: the crash the teacher hit became a working
+    // read, not a dead engine
     expect(fallback.lines).toBeGreaterThan(0);
     expect(fallback.textLength).toBeGreaterThan(0);
 

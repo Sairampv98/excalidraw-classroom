@@ -1,7 +1,7 @@
 {
   "engine": "paddle",
   "python": "3.12.10",
-  "image": "C:/Users/user/projects/stream-frame.jpg",
+  "image": "C:/Users/you/projects/stream-frame.jpg",
   "fellBack": true,
   "oneDNN": false,
   "durationMs": 36086,

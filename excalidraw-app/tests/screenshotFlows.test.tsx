@@ -1,14 +1,13 @@
 /**
  * The app's side of the **placement flow**.
  *
- * The owner wrote the three flows out, and this file walks them in the
- * owner's order: the crop comes first, the target is chosen **after** it, the
- * flow that writes **text** asks where the **text** goes, the third flow goes
- * through the **page selector ribbon**, and a finished placement gives the
- * canvas back.
+ * The teacher wrote the three flows out, and this file walks them in the
+ * teacher's order: the crop comes first, the target is chosen **after** it,
+ * the flow that writes **text** asks where the **text** goes, the third flow
+ * goes through the **page selector ribbon**, and a finished placement gives
+ * the canvas back.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -137,9 +136,10 @@ afterEach(() => {
 
 describe("the placement flow", () => {
   it("the wireframe waits for the choice", async () => {
-    // The owner's first flow: "(crop image) -> insert image in this page ->
-    // (crop image) -> select where the screenshot goes to". The target is
-    // chosen **after** the choice, so the wireframe is not there before it.
+    // The teacher's first flow: "(crop image) -> insert image in this page
+    // -> (crop image) -> select where the screenshot goes to". The target
+    // is chosen **after** the choice, so the wireframe is not there before
+    // it.
     const { api, result, bridge } = await renderEditor();
 
     const element = panel();
@@ -183,8 +183,8 @@ describe("the placement flow", () => {
   });
 
   it("the flow that reads the text asks where the text goes", async () => {
-    // The owner's second flow: "(crop image) -> read text in this cropped
-    // region -> select where the extracted text goes to".
+    // The teacher's second flow: "(crop image) -> read text in this
+    // cropped region -> select where the extracted text goes to".
     const readOcr = vi.fn(async (_args: ReadArgs) => ({
       lines: [{ text: "hello", x: 0, y: 0, width: 100, height: 20 }],
     }));
@@ -245,8 +245,8 @@ describe("the placement flow", () => {
   });
 
   it("the third flow goes through the page selector ribbon", async () => {
-    // The owner's third flow: "(crop image) -> insert image in another page ->
-    // select the page (through the page selecter ribbon) -> (crop image) ->
+    // The teacher's third flow: "(crop image) -> insert image in another page
+    // -> select the page (through the page selecter ribbon) -> (crop image) ->
     // select where the screenshot goes to".
     const { api, result } = await renderEditor();
 

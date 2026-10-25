@@ -2,8 +2,7 @@
  * The **crop** of a screenshot: the handles that take it, the picture that
  * shows it, and the z-plane the whole thing lives in.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { readFileSync } from "node:fs";
@@ -147,8 +146,8 @@ const renderEditor = async (stage?: "crop" | "page" | "place") => {
 
 describe("the crop of a screenshot", () => {
   it("dragging a crop handle changes the crop", async () => {
-    // The owner saw the handles and could not move them: "i can see the
-    // handles to crop the image but not do anything to it".
+    // The teacher saw the handles and could not move them: "i can see
+    // the handles to crop the image but not do anything to it".
     const { container, panel } = await renderEditor();
 
     const handle = container.querySelector(

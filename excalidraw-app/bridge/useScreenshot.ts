@@ -53,7 +53,8 @@ import type { OcrLine } from "../../packages/vscode-bridge/bridge/src/ocr";
  *
  * ## The order of the flow
  *
- * The owner wrote the three flows out, and this hook follows them:
+ * The teacher wrote the three flows out, and this hook follows
+ * them:
  *
  * - the **crop** comes first - the teacher crops the picture in the focus
  *   state, and the crop is the picture's own;
@@ -139,7 +140,7 @@ export const useScreenshot = ({
    *
    * - the **video's** frame is right here: the `<video>` element is in the
    *   page, so the frame is the video's own pixels — and the video is
-   *   **paused** first, because the owner asked for the paused frame;
+   *   **paused** first, because Provides the paused frame;
    * - the **editor's** window is not in the app: the frames live in the
    *   extension, so the app asks for **one** of them over the extension's own
    *   HTTP server, on the stream's URL with one more path segment. The session

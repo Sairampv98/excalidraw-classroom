@@ -7,10 +7,10 @@ import { DEFAULT_CAPTURE_FPS } from "./config";
 /**
  * The capture of the editor's **own window**.
  *
- * The owner asked for the actual VS Code window on the canvas, not a
- * reconstruction of its text. The extension API cannot do that - there is no
- * screenshot facility in it - but the editor process is not the only
- * way out of the editor.
+ * Provides the actual VS Code window on the canvas, not a reconstruction of
+ * its text. The extension API cannot do that - there is no screenshot
+ * facility in it - but the editor process is not the only way out of the
+ * editor.
  *
  * **Why a PowerShell helper and not ffmpeg.** Both were measured on this
  * machine, against a real VS Code and a real VSCodium window:
@@ -602,11 +602,11 @@ export interface WindowCaptureSupervisor {
 /**
  * The capture, and the rule that keeps it alive.
  *
- * The capture is still **ONE helper** for the session: a helper per
- * frame would spawn a process every frame for the whole lesson. But a helper
- * that has **died** is not the session - it is one process that stopped - so
- * it is started again, and the gap is a moment rather than the rest of the
- * lesson. That is what the owner's "it works exactly twice and then stops"
+ * The capture is still **ONE helper** for the session: a helper per frame
+ * would spawn a process every frame for the whole lesson. But a helper that
+ * has **died** is not the session - it is one process that stopped - so it
+ * is started again, and the gap is a moment rather than the rest of the
+ * lesson. That is what the teacher's "it works exactly twice and then stops"
  * was: one dead helper, dead for the rest of the session.
  *
  * `ensureRunning` is what the extension calls when a client connects: a

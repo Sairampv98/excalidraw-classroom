@@ -21,7 +21,7 @@ const scss = fs.readFileSync(
  * `.app-doc-markdown`, concatenated.
  *
  * Splitting by top level rather than string-matching one block matters: the
- * file has both a shared `.app-doc-code,.app-doc-markdown { … }` rule and a
+ * file has both a shared `.app-doc-code, .app-doc-markdown { … }` rule and a
  * standalone `.app-doc-markdown { … }` one, and the containment declarations are
  * load-bearing wherever they sit.
  */

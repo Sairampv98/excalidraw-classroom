@@ -3,10 +3,10 @@
  *
  * ## Why the captions are not in the player
  *
- * The owner's ask (2026-10-21): the captions should if possible not be inside
- * the video player but outside of it, in a text box — the one Excalidraw
- * natively has — which gets refreshed as the video plays. And: if there is no
- * caption, there is no such option.
+ * The teacher's ask (2026-10-21): the captions should if possible not be
+ * inside the video player but outside of it, in a text box — the one
+ * Excalidraw natively has — which gets refreshed as the video plays. And: if
+ * there is no caption, there is no such option.
  *
  * So the caption is an **ordinary Excalidraw text element** beside the panel.
  * It is not a second renderer and not a burn-in: the teacher can edit it,
@@ -136,7 +136,7 @@ export const parseVttCues = (text: string): PanelCaptionCue[] =>
  *
  * `null` when the file carries no cue at all: a caption track with no cue is
  * not a caption track, and a video whose caption file is empty gets **no**
- * caption element (the owner's rule).
+ * caption element (the teacher's rule).
  */
 export const parseCaptionTrack = ({
   text,
@@ -219,9 +219,9 @@ export const selectCaptionTrack = (
  * The text element the captions are written into — or `null` when the video has
  * no caption track.
  *
- * This is the rule the owner asked for: *if no caption, no such option*. A
- * video without captions gets **no** text element beside it, so the canvas
- * stays clean and nothing on it claims to be a caption.
+ * This is the rule the teacher asked for: *if no caption, no such option*.
+ * A video without captions gets **no** text element beside it, so the
+ * canvas stays clean and nothing on it claims to be a caption.
  *
  * The element is an ordinary text element: it is created with the ordinary
  * factory, so it is selected, styled, edited and undone like any other text.

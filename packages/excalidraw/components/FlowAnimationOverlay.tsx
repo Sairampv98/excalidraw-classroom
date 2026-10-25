@@ -99,7 +99,7 @@ export const FlowAnimationOverlay = ({
             return null;
           }
 
-          // the loop the owner asked for: back to the first step
+          // the loop the teacher asked for: back to the first step
           editorJotaiStore.set(flowAnimationStateAtom, {
             ...current,
             index: 0,

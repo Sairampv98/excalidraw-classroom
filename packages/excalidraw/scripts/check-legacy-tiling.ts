@@ -11,7 +11,7 @@
  *       packages/excalidraw/scripts/check-legacy-tiling.ts <file.excalidraw>
  *
  * The file defaults to the board the report was made on
- * (`C:/Users/user/projects/day-1.excalidraw`).
+ * (`C:/Users/you/projects/day-1.excalidraw`).
  */
 
 import { readFileSync } from "node:fs";
@@ -29,7 +29,7 @@ const { getPageRect, paginateContentIntoPages } = await import(
 const { DEFAULT_PAGE_ID } = await import("../types");
 const { getCommonBounds } = await import("@excalidraw/element");
 
-const file = process.argv[2] ?? "C:/Users/user/projects/day-1.excalidraw";
+const file = process.argv[2] ?? "C:/Users/you/projects/day-1.excalidraw";
 
 const data = JSON.parse(readFileSync(file, "utf8")) as {
   elements: ExcalidrawElement[];

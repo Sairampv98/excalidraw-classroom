@@ -549,7 +549,7 @@ const wrapLine = (
         trimLineEndAtSoftBreak(currentLine, currentLineStart, currentLineEnd),
       );
 
-      // purposefully not iterating and not setting `currentLine` to `token`, so that we could use a simple!currentLine check above
+      // purposefully not iterating and not setting `currentLine` to `token`, so that we could use a simple !currentLine check above
       currentLine = "";
       currentLineStart = tokenStart;
       currentLineEnd = tokenStart;

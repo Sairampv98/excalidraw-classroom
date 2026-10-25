@@ -18,12 +18,11 @@ import type { PanelCamera } from "../scene/panelContent";
 /**
  * The **wireframe** that stands where a screenshot will land.
  *
- * The owner asked for the affordance the sidebar's images already have: "a
- * wire frame of where to place the image similiar to the draggablity of gif and
- * images from the sidebar". So the picture that has been taken and has not been
- * placed yet is shown as a **rectangle of its own size**, standing on the
- * canvas where it will land, and the teacher **moves** it and **clicks** to
- * place it.
+ * Provides the affordance the sidebar's images already have: "a wire frame of
+ * where to place the image similiar to the draggablity of gif and images from
+ * the sidebar". So the picture that has been taken and has not been placed yet
+ * is shown as a **rectangle of its own size**, standing on the canvas where it
+ * will land, and the teacher **moves** it and **clicks** to place it.
  *
  * The position comes from the library's own `sceneCoordsToViewportCoords` — the
  * oracle — exactly as the panel's own placement does, so the wireframe

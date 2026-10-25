@@ -8,8 +8,7 @@
  * into a Blob in the origin's own IndexedDB and the document carries a short
  * id instead.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -201,7 +200,7 @@ describe("a video too big for the document", () => {
     expect((stored as File).name).toBe("huge.mkv");
     expect((stored as File).type).toBe("video/x-matroska");
 
-    // the document carries no video at all: no file in its file store...
+    // the document carries no video at all: no file in its file store ...
     expect(state.files).toHaveLength(0);
 
     // ... and no base64 anywhere in the element

@@ -3192,7 +3192,7 @@ class App extends React.Component<AppProps, AppState> {
 
   /**
    * Resets scene & history.
-   * ! Do not use to clear scene user action!
+   * ! Do not use to clear scene user action !
    */
   private resetScene = withBatchedUpdates(
     (opts?: { resetLoadingState: boolean }) => {
@@ -4327,8 +4327,7 @@ class App extends React.Component<AppProps, AppState> {
     // page-scoped view: keep the camera inside the current page's rect.
     // Clamping is idempotent, so this converges in a single follow-up render.
     //
-    // A page whose **own rect** moved counts as a camera change here (:
-    // the teacher picked a preset, so the page changed size, and a page that
+    // A page whose **own rect** moved counts as a camera change here (// the teacher picked a preset, so the page changed size, and a page that
     // changed size moves the pages after it): the camera has to be inside the
     // current page's rect, and a page that just moved may have left it outside.
     //

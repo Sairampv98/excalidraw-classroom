@@ -12,8 +12,7 @@
  * rules live in `../extension/src/taskPresentation`, which imports nothing
  * from `vscode` and is therefore testable without an editor.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { describe, expect, it } from "vitest";
@@ -50,10 +49,10 @@ describe("the bridge's task", () => {
     const task = createBridgeTask(api, {
       command: "python",
       args: ["main.py"],
-      cwd: "/home/sai",
+      cwd: "/home/you",
     });
 
-    // the terminal is REVEALED, so the teacher sees the program run...
+    // the terminal is REVEALED, so the teacher sees the program run ...
     expect(task.presentationOptions?.reveal).toBe(api.TaskRevealKind.Always);
 
     // ... and the focus is NEVER taken from the editor.
@@ -76,7 +75,7 @@ describe("the bridge's task", () => {
       type: "excalidraw-bridge.run",
       command: "python",
       args: ["main.py"],
-      cwd: "/home/sai",
+      cwd: "/home/you",
     });
   });
 });

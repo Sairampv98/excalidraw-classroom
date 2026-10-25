@@ -1,5 +1,5 @@
 /**
- * The app side of "Reformat as...".
+ * The app side of "Reformat as..." —.
  *
  * The library owns the *offer*: the context menu entry that appears on a
  * selection of text elements and hands the selection over. The app owns

@@ -2,8 +2,7 @@
  * The app's side of the VS Code bridge: the session, the token, and the state
  * the code panel shows.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { readFileSync } from "node:fs";
@@ -50,7 +49,7 @@ import { panelCopyControls } from "../sidebar/panelCopy";
 import { BRIDGE_URL_ENV_VAR } from "../../packages/vscode-bridge/bridge/src/protocol";
 
 /**
- * A token that is **obviously** not a secret: the kit's secret scanner
+ * A token that is **obviously** not a secret: the secret scanner
  * exempts values that say they are a test, a fake or a placeholder.
  */
 const TEST_TOKEN = "test-token-placeholder";
@@ -404,7 +403,7 @@ describe("the app's side of the bridge", () => {
     await waitFor(() => {
       const current = panelState(state);
 
-      // the panel says what is wrong...
+      // the panel says what is wrong ...
       expect(current?.connection).toBe("rejected");
       expect(current?.statusMessage).not.toBe("");
       expect(current?.statusMessage).toContain("Not connected");
@@ -454,11 +453,11 @@ describe("the app's side of the bridge", () => {
 
     await waitFor(() => expect(FakeSocket.instances.length).toBe(1));
 
-    // not in the browser's LONG-LIVED storage...
+    // not in the browser's LONG-LIVED storage ...
     expect(storageHolds(localStorage, TEST_TOKEN)).toBe(false);
     expect(document.cookie).not.toContain(TEST_TOKEN);
 
-    // ... not in the URL...
+    // ... not in the URL ...
     expect(window.location.href).not.toContain(TEST_TOKEN);
 
     // ... and not in the document: the panel's payload is saved with it
@@ -511,7 +510,7 @@ describe("the app's side of the bridge", () => {
       });
     });
 
-    // the chrome says it...
+    // the chrome says it ...
     await waitFor(() => {
       const chrome = document.querySelector(
         '[data-testid="panel-bridge-state"]',
@@ -669,15 +668,15 @@ describe("the app's side of the bridge", () => {
         },
       } as unknown as ExcalidrawImperativeAPI);
 
-    // the owner's canvas: the editor's view covers HALF of what the teacher
-    // can see - 990x1024 on a 1980x2048 screen
+    // the teacher's canvas: the editor's view covers HALF of what the
+    // teacher can see - 990x1024 on a 1980x2048 screen
     insertCodePanel(api(1980, 2048));
 
     expect(state.elements[0].width).toBe(990);
     expect(state.elements[0].height).toBe(1024);
 
     // it is a SHARE of the viewport, not a constant: a smaller screen gets a
-    // smaller panel...
+    // smaller panel ...
     state.elements = [];
     insertCodePanel(api(1000, 800));
 
@@ -715,7 +714,7 @@ describe("the app's side of the bridge", () => {
 
     await waitFor(() => expect(socket.sent.length).toBe(1));
 
-    // the extension says hello, with the stream's URL in it...
+    // the extension says hello, with the stream's URL in it ...
     act(() => {
       socket.receive({
         v: 1,
@@ -738,7 +737,7 @@ describe("the app's side of the bridge", () => {
       });
     });
 
-    // the panel DRAWS it...
+    // the panel DRAWS it ...
     await waitFor(() =>
       expect(
         document.querySelector('[data-testid="code-panel-live-frame"]'),
@@ -891,12 +890,12 @@ describe("the app's code languages", () => {
 
         expect(colour).not.toBeNull();
 
-        // ... with the VS Code KEYWORD colour (#c586c0)...
+        // ... with the VS Code KEYWORD colour (#c586c0) ...
         expect(colour).toContain("#c586c0");
 
         // ... and NOT with the variable colour (#9cdcfe). That is the bug the
-        // owner reported: the mermaid grammar matched `def` as a node name and
-        // painted it as a variable.
+        // teacher reported: the mermaid grammar matched `def` as a node name
+        // and painted it as a variable.
         expect(colour).not.toContain("#9cdcfe");
       },
       { timeout: 10000 },
@@ -908,8 +907,8 @@ describe("the app's code languages", () => {
 
     const ids = codeMirrorLanguageIds();
 
-    // the six the owner asked for, plus TypeScript and JSX, which come free
-    // with the JavaScript package
+    // the six the teacher asked for, plus TypeScript and JSX, which come
+    // free with the JavaScript package
     for (const id of CODE_LANGUAGE_IDS) {
       expect(ids).toContain(id);
     }
@@ -962,7 +961,7 @@ describe("the app's code languages", () => {
       "@codemirror/lang-python",
       "@codemirror/lang-rust",
     ]) {
-      // the APP has it...
+      // the APP has it ...
       expect(appDependencies).toContain(grammar);
 
       // ... and the published LIBRARY has none of them: the library reaches
@@ -1126,7 +1125,7 @@ describe("the app's runnable editor", () => {
       socket.receive({ v: 1, type: "run:exit", runId: "code-run-1", code: 0 });
     });
 
-    // the panel's state carries the output...
+    // the panel's state carries the output ...
     await waitFor(() => {
       const current = panelState(state);
 
@@ -1251,7 +1250,7 @@ describe("the panel's editor copy", () => {
       fireEvent.click(copy);
     });
 
-    // the code is on the clipboard...
+    // the code is on the clipboard ...
     expect(clipboard.writeText).toHaveBeenCalledWith(CODE);
 
     // ... and the next paste on the canvas is the code card: the SAME card the

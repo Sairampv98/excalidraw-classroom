@@ -83,7 +83,7 @@ export interface BridgeServerOptions {
   /** The extension's version. Sent in `bridge:hello`. */
   version?: string;
   /**
-   * Which editor this is: "Visual Studio Code", "VSCodium",...
+   * Which editor this is: "Visual Studio Code", "VSCodium", ...
    *
    * Sent in `bridge:hello`, so the app can say which editor it is talking
    * to. The port is fixed, so with two editors running the app may reach the

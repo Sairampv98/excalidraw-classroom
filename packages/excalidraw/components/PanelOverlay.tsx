@@ -505,12 +505,12 @@ const PanelScreenshotChoices = ({
       }}
     >
       {/*
-        The three choices, in the **owner's order**: the picture goes
-        on this page, the text is read out of the cropped region, the picture
-        goes on another page. The order is the teacher's own - "the 1st option
-        ... the 2nd option ... and finally the 3rd option" - so the strip reads
-        the way the owner said it.
-      */}
+       * The three choices, in the **teacher's order**: the picture goes on this
+       * page, the text is read out of the cropped region, the picture goes on
+       * another page. The order is the teacher's own - "the 1st option ... the
+       * 2nd option ... and finally the 3rd option" - so the strip reads the way
+       * the teacher said it.
+       */}
       {choice("page", "page", t("labels.panel.screenshot.page"))}
       {choice("ocr", "ocr", t("labels.panel.screenshot.ocr"))}
       {choice("newPage", "new-page", t("labels.panel.screenshot.newPage"))}
@@ -833,9 +833,9 @@ const CodePanelSurface = ({
    * Whether the panel draws the editor at all.
    *
    * The editor is drawn when the panel has **text** to show or to edit, when
-   * the teacher asked for the editor view, or when there is **no
-   * bridge at all** - that last one is the owner's bypass: the editor has to
-   * work with nothing connected to it.
+   * the teacher asked for the editor view, or when there is **no bridge at
+   * all** - that last one is the teacher's bypass: the editor has to work
+   * with nothing connected to it.
    */
   const showEditor =
     view === "editor" ||
@@ -996,7 +996,7 @@ const CodePanelSurface = ({
           }}
         >
           {/* The draft has no language yet: the picker says so instead of
-              pretending one is chosen (rule - say what is missing). */}
+              pretending one is chosen (the rule - say what is missing). */}
           {editor.language ? null : (
             <option value="">{t("labels.panel.code.runLanguageNone")}</option>
           )}
@@ -1089,7 +1089,7 @@ const CodePanelSurface = ({
         }}
       >
         {/* Nothing to read as: the picker says so instead of pretending one
-            is chosen (rule - say what is missing). */}
+            is chosen (the rule - say what is missing). */}
         {readLanguage ? null : (
           <option value="">{t("labels.editor.readLanguageNone")}</option>
         )}
@@ -1600,12 +1600,12 @@ const UNMUTED_VOLUME = 1;
  *
  * ## The captions are NOT drawn inside the player
  *
- * The owner asked for the captions to live **outside** the player, in an
- * ordinary text element beside the panel (2026-10-21). So the `<track>`
- * elements carry the cues — the browser reads them, and the teacher can turn
- * the browser's own captions on if they want them — but **none of them is
- * `default`**: the player does not draw the caption, and the caption the
- * teacher reads is the one in the text element next to the panel.
+ * Provides the captions to live **outside** the player, in an ordinary text
+ * element beside the panel (2026-10-21). So the `<track>` elements carry the
+ * cues — the browser reads them, and the teacher can turn the browser's own
+ * captions on if they want them — but **none of them is `default`**: the
+ * player does not draw the caption, and the caption the teacher reads is the
+ * one in the text element next to the panel.
  *
  * The cue the panel reports is computed from the panel's **own** copy of the
  * cues (the payload's `options.captions`), not from the browser's text track:
@@ -1659,7 +1659,7 @@ const VideoPanelSurface = ({
    * The video's **effective** state.
    *
    * The control used to show `video.muted` alone, so a slider at 0 left it
-   * saying "unmuted" while the video was silent - the owner's exact report
+   * saying "unmuted" while the video was silent - the teacher's exact report
    * ("sliding the volume slider completely down does not show the mute icon").
    * The state the teacher **experiences** is "muted" when the video is muted
    * **or** its volume is 0, and that is what the button shows and what clicking
@@ -1820,7 +1820,7 @@ const VideoPanelSurface = ({
 
   /**
    * The panel goes away: every listener is taken off and the fallback's URL
-   * is given back (rule: a lent URL is returned).
+   * is given back (the rule: a lent URL is returned).
    */
   useEffect(() => {
     aliveRef.current = true;

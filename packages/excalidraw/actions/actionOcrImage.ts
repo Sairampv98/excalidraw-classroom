@@ -5,9 +5,9 @@ import type { Action } from "./types";
 /**
  * "Read the text" — hands an ordinary **image** over to the host app.
  *
- * The owner asked for the OCR of a screenshot to be available for "regular
- * images aswell": a screenshot the teacher pasted in by hand is an ordinary
- * image element, and it deserves the same choice.
+ * Provides the OCR of a screenshot to be available for "regular images
+ * aswell": a screenshot the teacher pasted in by hand is an ordinary image
+ * element, and it deserves the same choice.
  *
  * The library cannot read anything itself: the OCR engine lives in the bridge's
  * Node process and never in the browser. So the library only owns the

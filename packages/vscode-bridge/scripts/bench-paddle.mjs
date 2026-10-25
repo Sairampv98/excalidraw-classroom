@@ -5,11 +5,11 @@
  * The sidecar that ships with the extension is the thing that has to work, so
  * this drives THAT script, over its own stdio protocol - one JSON object per
  * line - with a real Python and a real frame. It is the harness behind the
- * numbers wave 5o reported.
+ * benchmark numbers.
  *
  *   node packages/vscode-bridge/scripts/bench-paddle.mjs \
- *     --python "C:\Users\user\.pyenv\pyenv-win\versions\3.12.10\python.exe" \
- *     --image "C:\Users\user\projects\stream-frame.jpg" \
+ *     --python "C:\Users\you\.pyenv\pyenv-win\versions\3.12.10\python.exe" \
+ *     --image "C:\Users\you\projects\stream-frame.jpg" \
  *     --out packages/vscode-bridge/tests/fixtures/paddle-fallback.json
  *
  * The sidecar is asked for the same frame twice: the first read is the one

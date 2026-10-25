@@ -13,8 +13,7 @@
  * own units by dividing it by the scale. The scale is the panel element's own
  * `--panel-scale`, which is the very number the transform carries.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { describe, expect, it } from "vitest";
@@ -216,7 +215,7 @@ const measureAt = async (zoom: number): Promise<Measurement> => {
 describe("the panel's chrome", () => {
   it("the panel's chrome keeps its size on screen at any canvas zoom", async () => {
     // the two zooms: the panel as it is drawn, and the panel at half size —
-    // the case the owner saw on 2026-10-22, where the header's text
+    // the case the teacher saw on 2026-10-22, where the header's text
     // overlapped and the control buttons were about five pixels tall
     const measured = [await measureAt(1), await measureAt(0.5)];
 

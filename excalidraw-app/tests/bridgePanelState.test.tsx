@@ -36,7 +36,7 @@ import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { useBridgePanel } from "../bridge/useBridgePanel";
 
 /**
- * A token that is **obviously** not a secret: the kit's secret scanner
+ * A token that is **obviously** not a secret: the secret scanner
  * exempts values that say they are a test, a fake or a placeholder.
  */
 const TEST_TOKEN = "test-token-placeholder";

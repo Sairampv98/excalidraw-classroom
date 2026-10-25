@@ -55,14 +55,14 @@ describe("where the OCR engines live", () => {
     }
 
     // the EXTENSION declares one, and it is tesseract.js: the engine ships
-    // inside the.vsix, so the teacher installs nothing
+    // inside the .vsix, so the teacher installs nothing
     const extension = JSON.parse(
       read("packages/vscode-bridge/extension/package.json"),
     );
 
     expect(Object.keys(extension.dependencies ?? {})).toEqual(["tesseract.js"]);
 
-    // and the ROOT package carries it as the build-time source the.vsix is
+    // and the ROOT package carries it as the build-time source the .vsix is
     // built from - not as a dependency of the product
     const root = JSON.parse(read("package.json"));
 

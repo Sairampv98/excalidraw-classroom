@@ -1235,9 +1235,9 @@ describe("z-indexing with frames", () => {
   });
 
   // naming scheme:
-  // F#... frame element
-  // F#_#... frame child of F# (rectangle)
-  // R#... unrelated element (rectangle)
+  // F#   ... frame element
+  // F#_# ... frame child of F# (rectangle)
+  // R#   ... unrelated element (rectangle)
 
   it("moving whole frame by one (normalized)", () => {
     // normalized frame order

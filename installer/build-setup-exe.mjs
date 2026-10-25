@@ -2,7 +2,7 @@
  * Build `setup.exe` - the setup as one file a teacher can double-click.
  *
  * The executable is compiled by the C# compiler that ships with Windows
- * (`csc.exe` in the.NET Framework folder), so the project gains NO
+ * (`csc.exe` in the .NET Framework folder), so the project gains NO
  * dependency: nothing is downloaded, nothing is installed.
  *
  *   node installer/build-setup-exe.mjs

@@ -149,7 +149,7 @@ export const sortByReadingOrder = (
  * The step order: a topological sort over the arrow edges, with the reading
  * order as the tie-break.
  *
- * A **cycle is broken, not refused**: the owner's own words are "this
+ * A **cycle is broken, not refused**: the requirement for words are "this
  * entire thing is in a loop", so when no step is left with an unresolved
  * predecessor, the cycle is broken at its lowest-reading-order member and the
  * flow carries on from there.

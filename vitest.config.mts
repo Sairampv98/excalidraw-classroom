@@ -64,12 +64,13 @@ export default defineConfig({
   //@ts-ignore
   test: {
     // Vitest's default excludes do not cover this repository's own
-    // worktrees, the vendored TINS kit, or the scratch sandbox. Without
-    // these, a test file inside a worktree is collected a SECOND time
-    // when the suite runs from the repository root, and the duplicate run
-    // resolves different paths (the worktree segment ends up inside
-    // snapshot values such as the exported font URLs). That is what made
-    // packages/excalidraw/tests/scene/export.test.ts look flaky.
+    // worktrees, the vendored task tooling, or the scratch sandbox.
+    // Without these, a test file inside a worktree is collected a SECOND
+    // time when the suite runs from the repository root, and the
+    // duplicate run resolves different paths (the worktree segment ends
+    // up inside snapshot values such as the exported font URLs). That is
+    // what made packages/excalidraw/tests/scene/export.test.ts look
+    // flaky.
     //
     // Setting `exclude` REPLACES Vitest's defaults, so they are restated here.
     exclude: [
@@ -79,7 +80,6 @@ export default defineConfig({
       "**/.{idea,git,cache,output,temp}/**",
       "**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*",
       "**/.worktrees/**",
-      "**/.tins/**",
       "**/htr-sandbox/**",
     ],
     // Since hooks are running in stack in v2, which means all hooks run serially whereas

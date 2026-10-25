@@ -2,8 +2,7 @@
  * The app's side of the **screenshot**: the wireframe that stands where the
  * picture will land, and the new page the picture can land on.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";

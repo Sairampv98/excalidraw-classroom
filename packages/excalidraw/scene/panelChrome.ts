@@ -5,14 +5,14 @@
  * ## The chrome is sized for the SCREEN, the content for the PANEL
  *
  * A panel is a DOM overlay, and the overlay draws it with a `transform:
- * translate(...) scale(<zoom>)...`, so everything inside the panel is
+ * translate(...) scale(<zoom>) ...`, so everything inside the panel is
  * multiplied by the canvas zoom before it reaches the screen. The CONTENT
  * wants that: the code and the picture are the panel's own, and they grow and
  * shrink with it. The CHROME does not: the header, the control strip, the
  * buttons and the sliders are the teacher's instrument panel, and they have to
  * be readable and hittable at **every** zoom.
  *
- * What was measured on the owner's machine on 2026-10-22, at 51% zoom: the
+ * What was measured on the teacher's machine on 2026-10-22, at 51% zoom: the
  * code panel's header box was 11 screen pixels tall — its text overlapped —
  * and the video's control buttons were about 5. The chrome was sized in fixed
  * CSS pixels, so the zoom ate it.
@@ -108,7 +108,7 @@ export const PANEL_CHROME = {
    * The box is chrome **outside** the panel, so these are SCREEN pixels
    * and the panel's transform does not touch them. They were missing before -
    * the field and the Connect button had no size of their own, which is why
-   * they were "almost invisible" (: nothing the chrome draws may size
+   * they were "almost invisible" (nothing the chrome draws may size
    * itself).
    */
   bridgeBoxPadding: 6,

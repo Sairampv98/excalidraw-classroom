@@ -342,11 +342,11 @@ export type CodePanelContent = PanelContent & {
   /**
    * Whether the teacher **chose** the view.
    *
-   * The default alone is not enough: wave 5h wrote `view: "editor"` into
-   * every panel's payload, and that was the OLD default, not a choice. So the
-   * choice is a **flag beside** the view: a panel that carries no flag follows
-   * the default, and a panel the teacher switched keeps what the teacher
-   * switched to.
+   * The default alone is not enough: an earlier version wrote `view: "editor"`
+   * into every panel's payload, and that was the OLD default, not a choice. So
+   * the choice is a **flag beside** the view: a panel that carries no flag
+   * follows the default, and a panel the teacher switched keeps what the
+   * teacher switched to.
    *
    * It is a flag and not a second view string, so a payload written before
    * this wave still loads.
@@ -409,8 +409,7 @@ export type CodePanelContent = PanelContent & {
  *
  * The editor view used to be a **mirror**: it showed what the extension
  * published and could not be typed into, so with no bridge there was nothing
- * to show - a black box, which is what the owner reported on 2026-10-23
- *.
+ * to show - a black box, which is what the teacher reported on 2026-10-23 .
  *
  * So the panel carries the teacher's own text, and the **mirror is only what a
  * draft starts from**: a panel the teacher has never edited shows the mirrored
@@ -422,7 +421,7 @@ export type CodePanelDraft = {
   text: string;
   /**
    * The language the draft is in - the id the extension's runtime table uses
-   * (`python`, `javascript`,...).
+   * (`python`, `javascript`, ...).
    */
   language: string;
   /**
@@ -520,7 +519,7 @@ export const withCodePanelState = (
  * The choice is what makes the teacher's own view survive: a panel the teacher
  * switched carries the flag beside the view, and a panel that carries no flag
  * follows the default — even when its payload still says the OLD default
- * (`view: "editor"`, written by wave 5h).
+ * (`view: "editor"`, written by an earlier version).
  */
 export const readPanelView = (content: PanelContent): CodePanelView => {
   const widened: Partial<CodePanelContent> = content;
@@ -847,7 +846,7 @@ export const isBridgeCodePanel = (panel: ExcalidrawPanelElement): boolean =>
  * The name of the file a code panel is mirroring.
  *
  * The bridge sends the mirrored editor's **uri**, and a uri is not a
- * name: it is `file:///home/sai/main.py`, or `file:///C:/work/main.py`, or
+ * name: it is `file:///home/you/main.py`, or `file:///C:/work/main.py`, or
  * `untitled:Untitled-1`. What a VS Code tab says is the **last segment** of
  * it - and the panel has to say it too, or the code reads as a text box
  *.
@@ -883,10 +882,10 @@ export const codePanelFileName = (uri: string): string => {
 /**
  * The bounds of a new code panel's size, in scene units.
  *
- * A code panel is a **share of the visible canvas**, not a constant:
- * the owner asked for the editor's view to cover half the canvas, and half of
- * what the teacher can see is 990x1024 on a 1980x2048 screen. The bounds keep
- * the panel usable on a small screen and stop it from running off a big one.
+ * A code panel is a **share of the visible canvas**, not a constant: Provides
+ * the editor's view to cover half the canvas, and half of what the teacher
+ * can see is 990x1024 on a 1980x2048 screen. The bounds keep the panel usable
+ * on a small screen and stop it from running off a big one.
  */
 export const CODE_PANEL_MIN_WIDTH = 280;
 export const CODE_PANEL_MAX_WIDTH = 1200;
@@ -898,7 +897,7 @@ export const CODE_PANEL_MAX_HEIGHT = 1200;
  *
  * The viewport is in pixels and the panel's size is in scene units, so the
  * zoom is divided out: the panel then covers half of the **screen** at any
- * zoom, which is what the owner asked for.
+ * zoom, which is what the teacher asked for.
  */
 export const codePanelSize = (
   viewport: { width: number; height: number },

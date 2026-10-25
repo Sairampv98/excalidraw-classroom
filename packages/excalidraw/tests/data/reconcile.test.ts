@@ -141,13 +141,13 @@ describe("elements reconciliation", () => {
     // -------------------------------------------------------------------------
     //
     // in following tests, we pass:
-    //  (1) an array of local elements and their version (:1,:2...)
-    //  (2) an array of remote elements and their version (:1,:2...)
+    //  (1) an array of local elements and their version (:1, :2...)
+    //  (2) an array of remote elements and their version (:1, :2...)
     //  (3) expected reconciled elements
     //
     // in the reconciled array:
-    // :L means local element was resolved
-    // :R means remote element was resolved
+    //  :L means local element was resolved
+    //  :R means remote element was resolved
     //
     // if versions are missing, it defaults to version 0
     // -------------------------------------------------------------------------

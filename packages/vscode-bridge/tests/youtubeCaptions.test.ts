@@ -1,8 +1,7 @@
 /**
  * The **YouTube caption tiers**.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  *
  * The fetch is a **fake** here: the tiers are about what the service does with
  * the answers, and a fake fetch measures that without a network.

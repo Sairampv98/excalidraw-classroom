@@ -119,7 +119,7 @@ export function activate(context: vscode.ExtensionContext): void {
   let snippetService: SnippetService | null = null;
 
   /**
-   * Which editor this is: "Visual Studio Code", "VSCodium",...
+   * Which editor this is: "Visual Studio Code", "VSCodium", ...
    *
    * The bridge's port is FIXED, so with two editors running only one
    * of them holds it - and the app reaches that one, not necessarily the one

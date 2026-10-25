@@ -2,8 +2,7 @@
  * The app's side of the video panel: the insert of a local video, its
  * **sidecar** captions, and the caption element beside the panel.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { describe, expect, it, vi } from "vitest";

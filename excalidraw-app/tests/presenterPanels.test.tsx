@@ -1,5 +1,6 @@
 /**
- * The presenter shows the panels — the owner's item 10, part 1.
+ * The presenter shows the panels — the teacher's item 10, part
+ * 1.
  *
  * the presenter renders the SAME panel overlay the editor does, from the
  *        same element list.
@@ -8,8 +9,7 @@
  * the presenter shows the LIVE WINDOW from the editor's descriptor, and
  *        says why when it has heard nothing yet.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
@@ -133,7 +133,7 @@ class FakeSocket {
 }
 
 /**
- * A token that is **obviously** not a secret: the kit's secret scanner
+ * A token that is **obviously** not a secret: the secret scanner
  * exempts values that say they are a test, a fake or a placeholder.
  */
 const TEST_TOKEN = "test-token-placeholder";
@@ -626,7 +626,7 @@ describe("the presenter shows the panels", () => {
 
     await waitFor(() => expect(socket.sent.length).toBe(1));
 
-    // the extension says hello, with the stream's URL in it...
+    // the extension says hello, with the stream's URL in it ...
     act(() => {
       socket.receive({
         v: 1,

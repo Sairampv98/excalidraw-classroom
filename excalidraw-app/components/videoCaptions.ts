@@ -12,9 +12,9 @@
  * ## The caption element
  *
  * The caption the teacher reads is an **ordinary Excalidraw text element**
- * beside the panel (the owner's ask, 2026-10-21): not inside the player, not
- * burnt into the picture, but a text element that can be edited, restyled,
- * selected and undone like any other text.
+ * beside the panel (the teacher's ask, 2026-10-21): not inside the player,
+ * not burnt into the picture, but a text element that can be edited,
+ * restyled, selected and undone like any other text.
  *
  * And the rule that goes with it: a video **without** a caption track gets
  * **no** caption element at all. There is nothing to show, so nothing is

@@ -7,8 +7,7 @@
  * own 32 MB guard stays exactly where it is — it is the guard of the legacy
  * file path, and it keeps doing its job there.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

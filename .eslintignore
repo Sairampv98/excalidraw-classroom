@@ -20,14 +20,11 @@ node_modules
 
 # Reference material dropped into the repository root by hand. It is gitignored
 # and is not product source, so the formatter must not touch it.
-TINS-PLAYBOOK.md
 token-saving-harness-vscode.md
 
-# The TINS kit is a vendored third-party artifact: it is copied in verbatim
-# and its KIT-VERSION stamp is computed over the file list, so a formatter
-# must not touch it. Same for the kit's own task files, the session records
-# the kit generates, and the agent briefs.
-.tins/kit
+# A vendored third-party tool lives in this repository: it is copied in
+# verbatim and its version stamp is computed over its file list, so a
+# formatter must not touch it. Same for the tool's own task files, the
+# session records it generates, and the agent briefs.
 tasks
 sessions
-docs/tins-tasks

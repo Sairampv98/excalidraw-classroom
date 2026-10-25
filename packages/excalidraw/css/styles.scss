@@ -18,11 +18,10 @@
   // `__panel-focus-scrim`) and its own chrome - the three choices - stays
   // bright, so the teacher can still act on the picture in front
   --zIndex-panelFocusScrim: 2;
-  // the **focus state** of a screenshot: the picture comes
-  // forward **over the panels** and over the interactive canvas. The owner
-  // called the clash out - the panels were in the same z-plane as the popup -
-  // and the crop handles were under the interactive canvas, so they were
-  // visible and dead
+  // the **focus state** of a screenshot: the picture comes forward **over the
+  // panels** and over the interactive canvas. The teacher called the clash
+  // out - the panels were in the same z-plane as the popup - and the crop
+  // handles were under the interactive canvas, so they were visible and dead
   --zIndex-panelFocus: 8;
   // the **wireframe** that says where the picture goes: it is a guide
   // on the canvas, so it is above the panels and above the focus state
@@ -471,7 +470,7 @@ body.excalidraw-cursor-resize * {
 
   // A **note** in a code panel: it is a LINE, not a block that fills the
   // region - the region's space belongs to the editor, and the note says what
-  // is missing beside it (rule - say what is missing).
+  // is missing beside it (the rule - say what is missing).
   &__panel-code-notice {
     height: auto;
     min-height: 0;
@@ -660,8 +659,8 @@ body.excalidraw-cursor-resize * {
   // The **focus state** of a screenshot.
   //
   // It is **two** planes: the dimming steps the **canvas** back, and the
-  // picture comes **forward** - over the panels, which is where the owner saw
-  // the clash.
+  // picture comes **forward** - over the panels, which is where the teacher
+  // saw the clash.
   //
   // The root itself is not a z-plane of its own: the dimming has to stay
   // **under** the panels (a panel dims its own content, and its chrome - the
@@ -810,9 +809,9 @@ body.excalidraw-cursor-resize * {
   }
 
   // radix doesn't allow differntiating between hover and keyboard active
-  // states (it's forcing:focus on both).
+  // states (it's forcing :focus on both).
   //
-  // proper handling would be to disable:focus-visible by default, and enable
+  // proper handling would be to disable :focus-visible by default, and enable
   // on keyboard arrows (it'd then have to be disabled again, e.g. on keydown
   // or container focus)
   //

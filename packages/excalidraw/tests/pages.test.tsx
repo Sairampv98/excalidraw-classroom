@@ -7,9 +7,9 @@
  * page — without that stamp, anything drawn while a later page was active landed
  * on page 1 and therefore vanished from the editor.
  *
- * The  block below covers the *document* model: a file's pages
+ * The ``..`` block below covers the *document* model: a file's pages
  * are the file's own, never the running app's, and imported content has to be
- * reachable by the clamped camera. The *insertion* rule: a
+ * reachable by the clamped camera. `` covers the *insertion* rule: a
  * paste is an insertion into the live scene, so it belongs to the page the
  * user is on.
  */

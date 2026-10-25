@@ -6,7 +6,7 @@
  * place the shapes the arrows connect, and it does that as an ordinary scene
  * mutation (see `actionFlowLayout`), so it is undoable and it is saved.
  *
- * A **cycle is broken, not refused**: the owner's own words are "this
+ * A **cycle is broken, not refused**: the requirement for words are "this
  * entire thing is in a loop", so a flowchart whose arrows form a cycle is
  * expected. `dagre.layout()` does not tolerate one, so the cycle is found with
  * `graphlib.alg.findCycles(g)` and its back-edge is dropped. The dropped edge

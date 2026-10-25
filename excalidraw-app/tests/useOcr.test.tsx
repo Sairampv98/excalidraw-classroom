@@ -7,8 +7,7 @@
  * is offered the same choice, because a screenshot the teacher pasted in by
  * hand is an ordinary image.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -84,7 +83,7 @@ describe("reading the text out of a picture", () => {
 
     const api = await renderEditor();
 
-    // the app's existing OCR path...
+    // the app's existing OCR path ...
     const { result: ocr } = renderHook(() => useOcr({ api, requestOcr }));
 
     // ... and the screenshot's choice, which uses it
@@ -170,7 +169,8 @@ describe("reading the text out of a picture", () => {
   });
 
   it("the context menu of an image offers the ocr entry even when the image was not selected", async () => {
-    // The owner's item 5.5: "normal image doesnot get this option".
+    // The teacher's item 5.5: "normal image doesnot get this
+    // option".
     //
     // The entry belongs to the **picture the menu is about** - the one under
     // the pointer - and not to the selection. It used to ask for a picture
@@ -340,8 +340,8 @@ describe("the OCR engine picker", () => {
 
     expect(entries.length).toBe(3);
 
-    // the traffic lights the owner asked for: green for the fastest, amber
-    // for the one in the middle, red for the slowest
+    // the traffic lights the teacher asked for: green for the fastest,
+    // amber for the one in the middle, red for the slowest
     const colours = entries.map((entry) => {
       const dot = entry.querySelector(
         '[data-testid="panel-ocr-engine-dot"]',

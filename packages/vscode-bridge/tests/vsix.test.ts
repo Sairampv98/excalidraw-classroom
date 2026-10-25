@@ -34,13 +34,13 @@ const packageRoot = findPackageRoot();
 const buildScript = join(packageRoot, "scripts", "build-vsix.mjs");
 
 /**
- * The interpreter the owner's paddle install lives in.
+ * The interpreter the teacher's paddle install lives in.
  *
  * It is a **default**, not a secret: the extension ships it, so the teacher
  * installs the extension and OCR works.
  */
 const OWNER_PYTHON_PATH =
-  "C:\\Users\\user\\.pyenv\\pyenv-win\\versions\\3.12.10\\python.exe";
+  "C:\\Users\\you\\.pyenv\\pyenv-win\\versions\\3.12.10\\python.exe";
 
 const buildVsix = (outPath: string) => {
   execFileSync(process.execPath, [buildScript, "--out", outPath], {
@@ -256,7 +256,8 @@ describe("the .vsix", () => {
     expect(Object.keys(manifest.dependencies ?? {})).toEqual(["tesseract.js"]);
     expect(manifest.dependencies["tesseract.js"]).toBeTruthy();
 
-    // and it is the ONLY one: a new dependency needs the owner's approval
+    // and it is the ONLY one: a new dependency needs the teacher's
+    // approval
     expect(Object.keys(manifest.dependencies ?? {}).length).toBe(1);
   });
 
@@ -462,14 +463,14 @@ describe("the .vsix", () => {
       const properties = manifest.contributes.configuration.properties;
 
       // The token's default is EMPTY: the extension generates one for the
-      // session...
+      // session ...
       expect(properties["excalidraw-bridge.token"].default).toBe("");
 
       // ... and no default is contributed for it either
       const defaults = manifest.contributes.configurationDefaults?.[""] ?? {};
       expect(Object.keys(defaults)).not.toContain("excalidraw-bridge.token");
 
-      // Nothing in the manifest looks like a token: the.vsix is a PUBLISHED
+      // Nothing in the manifest looks like a token: the .vsix is a PUBLISHED
       // artifact, and a secret in it is a published secret.
       expect(JSON.stringify(manifest)).not.toMatch(/[0-9a-f]{32,}/i);
 

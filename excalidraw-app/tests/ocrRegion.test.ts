@@ -1,8 +1,7 @@
 /**
  * The OCR request's **region**, and the OCR **benchmark**.
  *
- * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { readFileSync } from "node:fs";

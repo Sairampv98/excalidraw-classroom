@@ -456,14 +456,14 @@ export const clampCameraToPage = ({
   pageRect: PageRect;
   maxZoom: number;
 }) => {
-  // The zoom's **floor** is a fixed small value, not the page's fit zoom
-  //. The page is the bound for **panning** - the teacher may scroll to
-  // the page and no further - but it is not a bound on how far **out** the view
-  // may zoom: below the fit zoom the page is simply smaller on the screen, with
-  // more of it visible, and the chrome can be inspected at a small zoom. The
-  // − button used to be a no-op at exactly the fit zoom, because the clamp
-  // pinned the zoom back to it (the owner measured 56 %, 36 % and 73 % in the
-  // three window sizes).
+  // The zoom's **floor** is a fixed small value, not the page's fit zoom . The
+  // page is the bound for **panning** - the teacher may scroll to the page and
+  // no further - but it is not a bound on how far **out** the view may zoom:
+  // below the fit zoom the page is simply smaller on the screen, with more of
+  // it visible, and the chrome can be inspected at a small zoom. The − button
+  // used to be a no-op at exactly the fit zoom, because the clamp pinned the
+  // zoom back to it (the teacher measured 56 %, 36 % and 73 % in the three
+  // window sizes).
   //
   // The floor is `MIN_ZOOM` - the **one** number it is written in, and the same
   // number the zoom-out button's disabled state uses, so the button and the

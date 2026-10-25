@@ -5,8 +5,8 @@
  * (`presenterCamera.test.ts`), the files path (`presenterFiles.test.tsx`), the
  * panels (`presenterPanels.test.tsx`), the media (`presenterMedia.test.ts`) and
  * the pointer (`presenterPointer.test.ts`). None of them answers the question
- * the owner actually asked - *"somehow the presenter view is dead"* - which is
- * whether the presenter's own window shows the teacher's canvas at all.
+ * the teacher actually asked - *"somehow the presenter view is dead"* - which
+ * is whether the presenter's own window shows the teacher's canvas at all.
  *
  * So this file plays **both sides of the channel**: the editor (an `Excalidraw`
  * with the broadcaster mounted and wired the way the app wires it) and the
@@ -16,8 +16,7 @@
  * the presenter view opens and shows the current scene, follows the
  *         page the teacher is on, and its own controls work.
  *
- * The rows named in the test titles are the rows of SPEC.md - the kit's SPEC
- * lint reads this file and fails if a row id is missing.
+ * Each test title names the requirement it checks.
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
@@ -211,7 +210,7 @@ describe("the presenter view", () => {
 
     const presenter = presenterApp();
 
-    // the presenter announced itself...
+    // the presenter announced itself ...
     expect(
       FakeBroadcastChannel.instances.some((channel) =>
         channel.posted.some(
@@ -259,7 +258,7 @@ describe("the presenter view", () => {
 
     const presenter = presenterApp();
 
-    // the presenter is on the teacher's page...
+    // the presenter is on the teacher's page ...
     await waitFor(() => {
       expect(presenter.state.currentPageId).toBe(PAGE_TWO);
     });

@@ -10,10 +10,10 @@
 .excalidraw-page-bar {
   position: fixed;
   /**
-   * The bar is centred in the space the **sidebar leaves**, never under it
-   *: the sidebar is overlaid on the editor container, so a bar centred
-   * on the whole window slid under it and could only be reached by closing the
-   * sidebar (the owner's exact report).
+   * The bar is centred in the space the **sidebar leaves**, never under it :
+   * the sidebar is overlaid on the editor container, so a bar centred on the
+   * whole window slid under it and could only be reached by closing the
+   * sidebar (the teacher's exact report).
    *
    * `--canvas-reserved-width` is the sidebar's actual width while it is open,
    * and 0 while it is closed - so the bar tracks the sidebar.

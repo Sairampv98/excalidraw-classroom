@@ -369,9 +369,10 @@ export const applyPanelDraft = (
  *
  * The picture does **not** go into the element's payload: the payload is saved
  * with the document, so a frame in it would put the teacher's screen into the
- * `.excalidraw` file. Since wave 5i the picture does not even reach
- * the app: the frames are served as an MJPEG stream from the extension's own
- * HTTP server, and the panel plays that stream in a plain `<img>`.
+ * `.excalidraw` file. Since the live view became a stream the picture does not
+ * even reach the app: the frames are served as an MJPEG stream from the
+ * extension's own HTTP server, and the panel plays that stream in a plain
+ * `<img>`.
  *
  * So what the registry holds is the live view's **descriptor**: the capture's
  * state and the URL of the stream. The URL carries the connection's

@@ -112,7 +112,7 @@
         },
         "excalidraw-bridge.pythonPath": {
           "type": "string",
-          "default": "C:\\Users\\user\\.pyenv\\pyenv-win\\versions\\3.12.10\\python.exe",
+          "default": "C:\\Users\\you\\.pyenv\\pyenv-win\\versions\\3.12.10\\python.exe",
           "description": "The Python interpreter the indra and paddle OCR engines run in. Point it at a virtual environment that has them installed."
         },
         "excalidraw-bridge.youtubeApiKey": {
@@ -125,7 +125,7 @@
     "configurationDefaults": {
       "": {
         "excalidraw-bridge.ocrEngine": "paddle",
-        "excalidraw-bridge.pythonPath": "C:\\Users\\user\\.pyenv\\pyenv-win\\versions\\3.12.10\\python.exe"
+        "excalidraw-bridge.pythonPath": "C:\\Users\\you\\.pyenv\\pyenv-win\\versions\\3.12.10\\python.exe"
       }
     }
   }

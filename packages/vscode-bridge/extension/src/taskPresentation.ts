@@ -98,7 +98,7 @@ export function createBridgeTask<T extends BridgeTask>(
   );
 
   task.presentationOptions = {
-    // the terminal is revealed...
+    // the terminal is revealed ...
     reveal: api.TaskRevealKind.Always,
     // ... and the focus is NEVER taken from the editor.
     focus: false,
