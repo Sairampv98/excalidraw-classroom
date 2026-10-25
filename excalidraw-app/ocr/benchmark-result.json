@@ -1,0 +1,148 @@
+{
+  "recordedAt": "2026-10-22T16:27:42.950Z",
+  "engine": {
+    "name": "tesseract.js",
+    "version": "7.0.0",
+    "language": "eng",
+    "workerCreatedOnce": true,
+    "languageDataUncached": false,
+    "corePathPinnedToSingleFile": false
+  },
+  "machine": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v22.23.2",
+    "cpu": "AMD Ryzen 5 5600H with Radeon Graphics         ",
+    "cpus": 12,
+    "totalMemoryMb": 15724
+  },
+  "budget": {
+    "fullFrameMs": 1500,
+    "subtitleCropMs": 250
+  },
+  "inputs": {
+    "note": "a 1080p screencast frame and the crop of its subtitle band; make-frames.py (next to this file) makes them"
+  },
+  "cases": {
+    "fullFrame": {
+      "image": "frame-1080p.png",
+      "region": null,
+      "runs": 10,
+      "medianMs": 278,
+      "p95Ms": 306,
+      "minMs": 268,
+      "maxMs": 306,
+      "samplesMs": [306, 296, 293, 278, 274, 268, 276, 283, 280, 273]
+    },
+    "subtitleCrop": {
+      "image": "frame-1080p.png",
+      "region": {
+        "x": 0,
+        "y": 900,
+        "width": 1920,
+        "height": 180
+      },
+      "runs": 10,
+      "medianMs": 120,
+      "p95Ms": 131,
+      "minMs": 117,
+      "maxMs": 131,
+      "samplesMs": [131, 122, 122, 120, 129, 117, 117, 130, 117, 119]
+    }
+  },
+  "engines": {
+    "tesseract": {
+      "name": "tesseract",
+      "available": true,
+      "version": "7.0.0",
+      "measured": {
+        "where": "this machine",
+        "with": "tesseract.js 7.0.0, in the benchmark process",
+        "at": "2026-10-22T16:27:42.950Z"
+      },
+      "fullFrame": {
+        "image": "frame-1080p.png",
+        "region": null,
+        "runs": 10,
+        "medianMs": 278,
+        "p95Ms": 306,
+        "minMs": 268,
+        "maxMs": 306,
+        "samplesMs": [306, 296, 293, 278, 274, 268, 276, 283, 280, 273]
+      },
+      "subtitleCrop": {
+        "image": "frame-1080p.png",
+        "region": {
+          "x": 0,
+          "y": 900,
+          "width": 1920,
+          "height": 180
+        },
+        "runs": 10,
+        "medianMs": 120,
+        "p95Ms": 131,
+        "minMs": 117,
+        "maxMs": 131,
+        "samplesMs": [131, 122, 122, 120, 129, 117, 117, 130, 117, 119]
+      }
+    },
+    "indra": {
+      "name": "indra",
+      "available": true,
+      "python": "3.14.7",
+      "measured": {
+        "where": "this machine",
+        "with": "indra, through the OCR sidecar on Python 3.14.7",
+        "at": "2026-10-22T16:27:42.950Z"
+      },
+      "fullFrame": {
+        "image": "frame-1080p.png",
+        "region": null,
+        "runs": 10,
+        "medianMs": 147,
+        "p95Ms": 186,
+        "minMs": 141,
+        "maxMs": 186,
+        "samplesMs": [143, 143, 164, 141, 186, 147, 152, 146, 149, 148]
+      },
+      "subtitleCrop": {
+        "image": "frame-1080p.png",
+        "region": {
+          "x": 0,
+          "y": 900,
+          "width": 1920,
+          "height": 180
+        },
+        "runs": 10,
+        "medianMs": 74,
+        "p95Ms": 97,
+        "minMs": 63,
+        "maxMs": 97,
+        "samplesMs": [75, 67, 71, 77, 74, 97, 77, 87, 63, 71]
+      }
+    },
+    "paddle": {
+      "name": "paddle",
+      "available": false,
+      "reason": "paddleocr is not installed on THIS machine's Python 3.14 - pip install paddleocr paddlepaddle. PaddlePaddle has no build for Python 3.14; it needs Python 3.12 or 3.13. It WAS measured, on another Python: see `measured`.",
+      "measured": {
+        "where": "the owner's machine - the one this record was written on, but with the owner's Python 3.12.10 instead of this benchmark's Python 3.14, which has no paddle wheel",
+        "with": "paddleocr 3.7.0 / paddlepaddle 3.3.1, through the shipped OCR sidecar inside the built .vsix",
+        "at": "2026-10-23",
+        "python": "3.12.10",
+        "image": "stream-frame.jpg (962x506) - not the 1080p frame the other engines were measured on",
+        "firstReadMs": 36086,
+        "secondReadMs": 30601,
+        "shippedSidecarMs": 34668,
+        "lines": 54,
+        "chars": 658,
+        "mkldnn": false,
+        "note": "the first read is the one that fell back - the fast path crashed, the model was rebuilt without oneDNN, and the read SUCCEEDED; the second read reuses that model; the third is the shipped sidecar, inside the built .vsix"
+      }
+    }
+  },
+  "verdict": {
+    "fullFrameMet": true,
+    "subtitleCropMet": true
+  }
+}

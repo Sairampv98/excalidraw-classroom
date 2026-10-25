@@ -1,0 +1,70 @@
+.DS_Store
+.env.development.local
+.env.local
+.env.production.local
+.env.test.local
+.envrc
+.eslintcache
+.history
+.idea
+.vercel
+.vscode
+.yarn
+*.log
+*.tgz
+build
+dist
+firebase
+logs
+node_modules
+npm-debug.log*
+package-lock.json
+yarn-debug.log*
+yarn-error.log*
+packages/excalidraw/types
+coverage
+dev-dist
+html
+meta*.json
+.claude
+
+# scratch sandbox from an earlier handwriting-recognition experiment: 554
+# files / ~285 MB of ONNX models + its own node_modules. Not part of the
+# excalidraw fork.
+htr-sandbox/
+
+# agent session scratch artifacts (not part of the fork)
+.mavis-*.txt
+.mavis-snapbak/
+
+# OCR language data (the OCR engine lives in the bridge, and it fetches its
+# own language data - a traineddata file in the repository is a 5 MB artefact
+# of a benchmark run, not a source file)
+*.traineddata
+
+# isolated feature worktrees
+.worktrees/
+
+# Reference material for an earlier migration, not project files
+token-saving-harness-vscode.md
+
+# local search harness for VS Code / Copilot (machine-specific)
+.venv/
+.vscode/
+__pycache__/
+*.pyc
+
+# Tooling runtime: the tool itself is tracked; its outputs are not. These
+# are outputs.
+
+# the built setup, on Windows - rebuilt by installer/build-setup-exe.mjs
+/setup.exe
+/installer/setup.exe
+
+# the offline setup: the payload it carries and the executable built from it.
+# Both are BUILD OUTPUT - the payload is downloaded by
+# installer/offline/build-payload.mjs and the executable is compiled by
+# installer/offline/build-offline-setup.mjs. Only the builder is committed.
+/installer/offline/payload/
+/installer/offline/payload.zip
+/installer/offline/OfflineSetup.exe
