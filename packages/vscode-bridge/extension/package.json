@@ -1,0 +1,132 @@
+{
+  "name": "excalidraw-bridge",
+  "displayName": "Excalidraw Bridge",
+  "description": "Mirrors the active editor into an Excalidraw canvas panel, and runs the program so that its output can be shown there too.",
+  "version": "0.1.0",
+  "publisher": "excalidraw-teacher-help",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.91.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "excalidraw",
+    "teaching",
+    "classroom",
+    "bridge"
+  ],
+  "main": "./out/extension.js",
+  "dependencies": {
+    "tesseract.js": "^7.0.0"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "contributes": {
+    "taskDefinitions": [
+      {
+        "type": "excalidraw-bridge.run",
+        "required": [
+          "command"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The program to run, e.g. python or node."
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The arguments, e.g. [\"main.py\"]."
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Where to run it. Defaults to the workspace root."
+          }
+        }
+      }
+    ],
+    "commands": [
+      {
+        "command": "excalidraw-bridge.showStatus",
+        "title": "Excalidraw Bridge: Show the connection details"
+      },
+      {
+        "command": "excalidraw-bridge.copyToken",
+        "title": "Excalidraw Bridge: Copy the session token"
+      },
+      {
+        "command": "excalidraw-bridge.openInputPanel",
+        "title": "Excalidraw Bridge: Open the presenter's input panel"
+      },
+      {
+        "command": "excalidraw-bridge.placePresenterOnVirtualDisplay",
+        "title": "Excalidraw Bridge: Put the presenter's window on the virtual display"
+      },
+      {
+        "command": "excalidraw-bridge.placeEditorOnVirtualDisplay",
+        "title": "Excalidraw Bridge: Put the editor's window on the virtual display"
+      },
+      {
+        "command": "excalidraw-bridge.bringBackEditorToPrimaryDisplay",
+        "title": "Excalidraw Bridge: Bring the editor's window back to this screen"
+      },
+      {
+        "command": "excalidraw-bridge.bringBackPresenterToPrimaryDisplay",
+        "title": "Excalidraw Bridge: Bring the presenter's window back to this screen"
+      }
+    ],
+    "configuration": {
+      "title": "Excalidraw Bridge",
+      "properties": {
+        "excalidraw-bridge.port": {
+          "type": "number",
+          "description": "The fixed loopback port the bridge listens on. Leave it unset: the port then comes from VITE_APP_BRIDGE_URL in the workspace's .env file - the same variable the Excalidraw page is built with - and falls back to the shared default (47511)."
+        },
+        "excalidraw-bridge.token": {
+          "type": "string",
+          "default": "",
+          "description": "The token the Excalidraw page must present. Leave it empty and one is generated for the session. The extension NEVER ships a token: it is a secret, and the .vsix is a published artifact."
+        },
+        "excalidraw-bridge.captureFps": {
+          "type": "number",
+          "default": 6,
+          "description": "How many frames a second the panel's live view of this editor's window takes. Six a second is enough to read by. Without the capture the panel falls back to the mirrored text and says why."
+        },
+        "excalidraw-bridge.ocrEngine": {
+          "type": "string",
+          "enum": [
+            "tesseract",
+            "indra",
+            "paddle"
+          ],
+          "default": "paddle",
+          "description": "The OCR engine the bridge reads with. tesseract runs in this extension's own process; indra and paddle run in a Python sidecar (see excalidraw-bridge.pythonPath)."
+        },
+        "excalidraw-bridge.pythonPath": {
+          "type": "string",
+          "default": "C:\\Users\\user\\.pyenv\\pyenv-win\\versions\\3.12.10\\python.exe",
+          "description": "The Python interpreter the indra and paddle OCR engines run in. Point it at a virtual environment that has them installed."
+        },
+        "excalidraw-bridge.youtubeApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your own YouTube Data API v3 key. It is used only to read the captions of a YouTube video, and it is never sent anywhere but YouTube. Leave it empty and the captions fall back to the public endpoint, which is best effort - and the panel says which tier answered."
+        }
+      }
+    },
+    "configurationDefaults": {
+      "": {
+        "excalidraw-bridge.ocrEngine": "paddle",
+        "excalidraw-bridge.pythonPath": "C:\\Users\\user\\.pyenv\\pyenv-win\\versions\\3.12.10\\python.exe"
+      }
+    }
+  }
+}

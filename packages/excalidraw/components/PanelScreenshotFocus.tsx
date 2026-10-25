@@ -1,0 +1,503 @@
+import React, { useRef, useSyncExternalStore } from "react";
+
+import type { ExcalidrawPanelElement } from "@excalidraw/element/types";
+
+import {
+  WHOLE_PICTURE,
+  getAnyPendingScreenshot,
+  revertPendingScreenshotCrop,
+  setPendingScreenshotCrop,
+  subscribePendingScreenshots,
+} from "../scene/panelScreenshot";
+
+import { t } from "../i18n";
+
+import type { ExcalidrawPage } from "../types";
+import type { PanelScreenshotCrop } from "../scene/panelScreenshot";
+
+/**
+ * The **focus state** of a screenshot.
+ *
+ * The owner asked for the picture to come forward: "after clicking this button
+ * the preview of the screenshot should appear as if it has moved up in the z
+ * axis and the canvas/editor has moved back in the z - axis (visual effect only
+ * darkens background, leaving the screenshot to become the thing in focus with
+ * those 3 options i mentioned, also add a cropping tool that is turned on by
+ * default so we can crop the screenshot and revert the crop back one step
+ * aswell)".
+ *
+ * So the capture does not merely produce a picture: it opens a **focus state**.
+ * The canvas behind is dimmed, the picture is presented in front of it, and the
+ * three choices act on **that** picture.
+ *
+ * ## The crop
+ *
+ * The crop is **on by default**: the picture arrives with the crop tool on it,
+ * so the teacher can take the part they want straight away - and leave the
+ * picture whole, which is a choice too.
+ *
+ * The crop is the **picture's own state**: it is measured in fractions
+ * of the picture, so it is the same crop at any size, and it travels with the
+ * picture when the teacher moves it. And it can be taken back **one step** -
+ * to the uncropped capture - and there is no second step: a crop that has been
+ * reverted has nothing to revert to.
+ *
+ * The preview is a **picture**, not a control: only the crop handles take the
+ * pointer, so the picture in front never swallows the click of a choice that
+ * lies behind it.
+ *
+ * ## The z-plane
+ *
+ * The focus state is **two** planes. The dimming steps the **canvas** back, and
+ * the picture comes **forward**: over the interactive canvas and over the
+ * panels. The owner saw the crop handles and could not move them - "i can see
+ * the handles to crop the image but not do anything to it" - because the whole
+ * focus state was drawn *under* the interactive canvas, which took the pointer.
+ * The dimming stays **under** the panels on purpose: a panel dims its own
+ * content, and its own chrome - the three choices - stays bright.
+ *
+ * ## The steps
+ *
+ * The crop is the **first** step and the target is the **last** one. The
+ * picture in front is there for the whole flow, so the teacher may crop it
+ * again at any point - which is what the owner's own flows describe.
+ */
+export const PanelScreenshotFocus = ({
+  panels,
+  viewport,
+  pages,
+  onPageChoice,
+}: {
+  /** the panels on the canvas: a focus whose panel is gone goes with it */
+  panels: readonly ExcalidrawPanelElement[];
+  /** the viewport the picture is presented in */
+  viewport: { width: number; height: number };
+  /** the document's pages: the page selector ribbon offers them */
+  pages: readonly ExcalidrawPage[];
+  /** the teacher picked a page in the ribbon */
+  onPageChoice?: (panelId: string, pageId: string | null) => void;
+}) => {
+  const pending = useSyncExternalStore(
+    subscribePendingScreenshots,
+    getAnyPendingScreenshot,
+    getAnyPendingScreenshot,
+  );
+
+  /**
+   * The drag of a crop handle.
+   *
+   * The pointer's last position is kept here, not in the store: the store
+   * holds the **crop**, and a pointer position is not a crop.
+   */
+  const dragRef = useRef<{
+    pointerId: number;
+    handle: string;
+    startX: number;
+    startY: number;
+    crop: PanelScreenshotCrop;
+    displayWidth: number;
+    displayHeight: number;
+  } | null>(null);
+
+  if (!pending) {
+    return null;
+  }
+
+  // the panel is gone: the picture it was taken from is gone too
+  if (!panels.some((panel) => panel.id === pending.panelId)) {
+    return null;
+  }
+
+  const crop = pending.crop ?? WHOLE_PICTURE;
+  const stage = pending.stage ?? "crop";
+
+  /**
+   * The picture's size on the screen.
+   *
+   * The picture keeps its own proportions and fits the viewport, so the teacher
+   * sees the picture as it is - big enough to crop, small enough to leave
+   * room around it.
+   *
+   * In the **last** step the picture steps back into the corner: the canvas is
+   * the teacher's now - the wireframe is standing on it, and the picture must
+   * not stand on top of it.
+   */
+  const pictureWidth = pending.width || 1;
+  const pictureHeight = pending.height || 1;
+
+  const fit =
+    stage === "place"
+      ? Math.min(
+          (viewport.width * 0.28) / pictureWidth,
+          (viewport.height * 0.28) / pictureHeight,
+        )
+      : Math.min(
+          (viewport.width * 0.9) / pictureWidth,
+          (viewport.height * 0.8) / pictureHeight,
+        );
+
+  const displayWidth = pictureWidth * fit;
+  const displayHeight = pictureHeight * fit;
+
+  /** where the picture sits: in the middle, or in the corner */
+  const inCorner = stage === "place";
+  const pictureLeft = inCorner ? 16 : (viewport.width - displayWidth) / 2;
+  const pictureTop = inCorner ? 16 : (viewport.height - displayHeight) / 2;
+
+  /**
+   * The cropped part of the picture, in the picture's own screen box.
+   *
+   * The preview shows **only** that part: a crop that is drawn over
+   * the whole picture is a promise the panel does not keep - the teacher
+   * cannot see what they are about to place.
+   */
+  const cropLeft = crop.x * displayWidth;
+  const cropTop = crop.y * displayHeight;
+  const cropWidth = crop.width * displayWidth;
+  const cropHeight = crop.height * displayHeight;
+
+  const onPointerDown = (
+    event: React.PointerEvent<HTMLDivElement>,
+    handle: string,
+  ) => {
+    // the handle is a control: it takes the pointer, unlike the picture
+    event.preventDefault();
+    event.stopPropagation();
+
+    dragRef.current = {
+      pointerId: event.pointerId,
+      handle,
+      startX: event.clientX,
+      startY: event.clientY,
+      crop,
+      displayWidth,
+      displayHeight,
+    };
+
+    // the capture keeps the drag alive when the pointer leaves the handle -
+    // and it is optional, because a browser without it still drags
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+
+    if (!drag || drag.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const dx = (event.clientX - drag.startX) / drag.displayWidth;
+    const dy = (event.clientY - drag.startY) / drag.displayHeight;
+
+    const next = moveCropEdge(drag.crop, drag.handle, dx, dy);
+
+    if (!next) {
+      return;
+    }
+
+    setPendingScreenshotCrop(pending.panelId, next);
+  };
+
+  const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    dragRef.current = null;
+
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    }
+  };
+
+  return (
+    <div
+      className="excalidraw__panel-screenshot-focus"
+      data-testid="panel-screenshot-focus"
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        // the focus state is **visual**: it dims what is behind and
+        // brings the picture forward, and it does not change the document.
+        pointerEvents: "none",
+      }}
+    >
+      {/* the dimming: everything behind the picture steps back */}
+      <div
+        className="excalidraw__panel-screenshot-focus-scrim"
+        data-testid="panel-screenshot-focus-scrim"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background: "rgba(0, 0, 0, 0.55)",
+          // the dimming does not take the pointer: the three choices behind it
+          // stay the teacher's to press
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* the picture in front, with the crop on it */}
+      <div
+        className="excalidraw__panel-screenshot-focus-preview"
+        data-testid="panel-screenshot-focus-preview"
+        style={{
+          position: "absolute",
+          left: pictureLeft,
+          top: pictureTop,
+          width: displayWidth,
+          height: displayHeight,
+          // the picture is a picture: only the crop handles take the pointer
+          pointerEvents: "none",
+        }}
+      >
+        {/* the **cropped part** of the picture - and only that */}
+        <div
+          className="excalidraw__panel-screenshot-focus-cropped"
+          data-testid="panel-screenshot-focus-cropped"
+          style={{
+            position: "absolute",
+            left: cropLeft,
+            top: cropTop,
+            width: cropWidth,
+            height: cropHeight,
+            overflow: "hidden",
+          }}
+        >
+          <img
+            src={pending.dataURL}
+            alt=""
+            data-testid="panel-screenshot-focus-image"
+            draggable={false}
+            style={{
+              position: "absolute",
+              // the picture is drawn whole, and the crop window looks at the
+              // part of it the teacher kept
+              left: -cropLeft,
+              top: -cropTop,
+              width: displayWidth,
+              height: displayHeight,
+              objectFit: "contain",
+              display: "block",
+              pointerEvents: "none",
+            }}
+          />
+        </div>
+
+        {/* the crop: the part of the picture that will be placed */}
+        <div
+          className="excalidraw__panel-screenshot-crop"
+          data-testid="panel-screenshot-crop"
+          style={{
+            position: "absolute",
+            left: cropLeft,
+            top: cropTop,
+            width: cropWidth,
+            height: cropHeight,
+            border: "1px solid var(--color-primary)",
+            boxSizing: "border-box",
+            pointerEvents: "none",
+          }}
+        >
+          {CROP_HANDLES.map((handle) => (
+            <div
+              key={handle}
+              className="excalidraw__panel-screenshot-crop-handle"
+              data-testid={`panel-screenshot-crop-handle-${handle}`}
+              role="button"
+              tabIndex={-1}
+              aria-label={t("labels.crop.handle")}
+              onPointerDown={(event) => onPointerDown(event, handle)}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              style={{
+                position: "absolute",
+                width: HANDLE_SIZE,
+                height: HANDLE_SIZE,
+                background: "var(--color-primary)",
+                borderRadius: 2,
+                // the handles are the one control of the picture
+                pointerEvents: "auto",
+                cursor: "crosshair",
+                ...handleStyle(handle),
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {pending.cropUndo ? (
+        /* The revert: one step, back to the uncropped capture. */
+        <button
+          type="button"
+          className="excalidraw__panel-screenshot-crop-revert"
+          data-testid="panel-screenshot-crop-revert"
+          onClick={() => revertPendingScreenshotCrop(pending.panelId)}
+          style={{
+            position: "absolute",
+            left: pictureLeft + displayWidth / 2,
+            top: pictureTop + displayHeight + 16,
+            transform: "translateX(-50%)",
+            zIndex: "var(--zIndex-panelFocus)",
+            pointerEvents: "auto",
+            cursor: "pointer",
+          }}
+        >
+          {t("labels.crop.revert")}
+        </button>
+      ) : null}
+
+      {stage === "page" ? (
+        /* The **page selector ribbon**: the third flow goes through it
+         * before the picture is placed. */
+        <div
+          className="excalidraw__panel-screenshot-choices"
+          data-testid="panel-screenshot-pages"
+          role="group"
+          aria-label={t("labels.crop.pageRibbon")}
+          style={{
+            position: "absolute",
+            left: pictureLeft + displayWidth / 2,
+            top: pictureTop + displayHeight + 16,
+            transform: "translateX(-50%)",
+            zIndex: "var(--zIndex-panelFocus)",
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 4,
+            padding: 6,
+            pointerEvents: "auto",
+            // the ribbon is **not** on a panel, so it carries the chrome's scale
+            // itself: the sizes are the screen sizes
+            ["--panel-scale" as string]: 1,
+          }}
+        >
+          {pages.map((page) => (
+            <button
+              key={page.id}
+              type="button"
+              className="excalidraw__panel-screenshot-choice"
+              data-testid={`panel-screenshot-page-${page.id}`}
+              data-panel-id={pending.panelId}
+              onClick={() => onPageChoice?.(pending.panelId, page.id)}
+              style={{ flexShrink: 0 }}
+            >
+              {page.name}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="excalidraw__panel-screenshot-choice"
+            data-testid="panel-screenshot-page-new"
+            data-panel-id={pending.panelId}
+            onClick={() => onPageChoice?.(pending.panelId, null)}
+            style={{ flexShrink: 0 }}
+          >
+            {t("labels.crop.newPage")}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+/** the eight handles of the crop: the four corners and the four edges */
+const CROP_HANDLES = [
+  "top-left",
+  "top",
+  "top-right",
+  "right",
+  "bottom-right",
+  "bottom",
+  "bottom-left",
+  "left",
+] as const;
+
+/** the size of a crop handle, in screen pixels */
+const HANDLE_SIZE = 10;
+
+/**
+ * Where a handle sits on the crop.
+ *
+ * Every handle is placed on the edge it belongs to: a corner handle sits on the
+ * corner, an edge handle sits in the middle of its edge. The handle's own
+ * size is subtracted from the middle of an edge, so the handle is **on** the
+ * edge and not half outside it.
+ */
+const handleStyle = (handle: string): React.CSSProperties => {
+  const half = HANDLE_SIZE / 2;
+
+  const onTop = { top: -half };
+  const onBottom = { bottom: -half };
+  const onLeft = { left: -half };
+  const onRight = { right: -half };
+  const inMiddle = { left: `calc(50% - ${half}px)` };
+  const inMiddleV = { top: `calc(50% - ${half}px)` };
+
+  switch (handle) {
+    case "top-left":
+      return { ...onTop, ...onLeft };
+    case "top":
+      return { ...onTop, ...inMiddle };
+    case "top-right":
+      return { ...onTop, ...onRight };
+    case "right":
+      return { ...inMiddleV, ...onRight };
+    case "bottom-right":
+      return { ...onBottom, ...onRight };
+    case "bottom":
+      return { ...onBottom, ...inMiddle };
+    case "bottom-left":
+      return { ...onBottom, ...onLeft };
+    case "left":
+      return { ...inMiddleV, ...onLeft };
+    default:
+      return {};
+  }
+};
+
+/**
+ * The crop a handle's drag produces.
+ *
+ * The crop is measured in fractions of the picture, so it is clamped to the
+ * picture and it keeps a minimum size: a crop with no area is not a crop.
+ */
+export const moveCropEdge = (
+  crop: PanelScreenshotCrop,
+  handle: string,
+  dx: number,
+  dy: number,
+): PanelScreenshotCrop | null => {
+  const MIN = 0.05;
+
+  let { x, y, width, height } = crop;
+
+  if (handle.includes("left")) {
+    const next = Math.min(Math.max(0, x + dx), x + width - MIN);
+
+    width += x - next;
+    x = next;
+  }
+
+  if (handle.includes("right")) {
+    width = Math.min(Math.max(MIN, width + dx), 1 - x);
+  }
+
+  if (handle.includes("top")) {
+    const next = Math.min(Math.max(0, y + dy), y + height - MIN);
+
+    height += y - next;
+    y = next;
+  }
+
+  if (handle.includes("bottom")) {
+    height = Math.min(Math.max(MIN, height + dy), 1 - y);
+  }
+
+  if (width <= 0 || height <= 0) {
+    return null;
+  }
+
+  return { x, y, width, height };
+};

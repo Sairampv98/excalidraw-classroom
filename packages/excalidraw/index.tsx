@@ -1,0 +1,712 @@
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  DEFAULT_IMAGE_OPTIONS,
+  DEFAULT_UI_OPTIONS,
+  isShallowEqual,
+} from "@excalidraw/common";
+
+import App, {
+  ExcalidrawAPIContext,
+  ExcalidrawAPISetContext,
+} from "./components/App";
+import { InitializeApp } from "./components/InitializeApp";
+import Footer from "./components/footer/FooterCenter";
+import LiveCollaborationTrigger from "./components/live-collaboration/LiveCollaborationTrigger";
+import MainMenu from "./components/main-menu/MainMenu";
+import WelcomeScreen from "./components/welcome-screen/WelcomeScreen";
+import { defaultLang } from "./i18n";
+import {
+  useAppStateValue as _useAppStateValue,
+  useOnAppStateChange as _useOnAppStateChange,
+} from "./hooks/useAppStateValue";
+import { EditorJotaiProvider, editorJotaiStore } from "./editor-jotai";
+import polyfill from "./polyfill";
+
+import "./css/app.scss";
+import "./css/styles.scss";
+import "./fonts/fonts.css";
+
+import type {
+  AppProps,
+  AppState,
+  ExcalidrawImperativeAPI,
+  ExcalidrawProps,
+} from "./types";
+
+polyfill();
+
+/**
+ * Stateless provider that allows `useExcalidrawAPI()` (and hooks built
+ * on it, such as `useAppStateValue()` and `useOnAppStateChange()`) to work
+ * outside the <Excalidraw> component tree.
+ */
+export const ExcalidrawAPIProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const [api, setApi] = useState<ExcalidrawImperativeAPI | null>(null);
+  return (
+    <ExcalidrawAPIContext.Provider value={api}>
+      <ExcalidrawAPISetContext.Provider value={setApi}>
+        {children}
+      </ExcalidrawAPISetContext.Provider>
+    </ExcalidrawAPIContext.Provider>
+  );
+};
+
+const ExcalidrawBase = (props: ExcalidrawProps) => {
+  const {
+    onExport,
+    onChange,
+    onIncrement,
+    initialData,
+    onExcalidrawAPI,
+    onMount,
+    onUnmount,
+    onInitialize,
+    isCollaborating = false,
+    onPointerUpdate,
+    renderTopLeftUI,
+    renderTopRightUI,
+    langCode = defaultLang.code,
+    viewModeEnabled,
+    zenModeEnabled,
+    gridModeEnabled,
+    libraryReturnUrl,
+    theme,
+    name,
+    renderCustomStats,
+    onPaste,
+    onReformatSelection,
+    detectScroll = true,
+    handleKeyboardGlobally = false,
+    pagesEnabled = false,
+    sidebarWidth,
+    onLibraryChange,
+    autoFocus = false,
+    generateIdForFile,
+    onLinkOpen,
+    generateLinkForSelection,
+    onPointerDown,
+    onPointerUp,
+    onScrollChange,
+    onDuplicate,
+    children,
+    validateEmbeddable,
+    renderEmbeddable,
+    aiEnabled,
+    showDeprecatedFonts,
+    renderScrollbars,
+    imageOptions,
+    panelBridge,
+    panelOcr,
+    panelScreenshot,
+    panelDraft,
+    panelRun,
+    panelCopy,
+    panelCaptions,
+    panelMirror,
+  } = props;
+
+  const canvasActions = props.UIOptions?.canvasActions;
+
+  // FIXME normalize/set defaults in parent component so that the memo resolver
+  // compares the same values
+  const UIOptions: AppProps["UIOptions"] = {
+    ...props.UIOptions,
+    canvasActions: {
+      ...DEFAULT_UI_OPTIONS.canvasActions,
+      ...canvasActions,
+    },
+    tools: {
+      image: props.UIOptions?.tools?.image ?? true,
+    },
+  };
+
+  if (canvasActions?.export) {
+    UIOptions.canvasActions.export.saveFileToDisk =
+      canvasActions.export?.saveFileToDisk ??
+      DEFAULT_UI_OPTIONS.canvasActions.export.saveFileToDisk;
+  }
+
+  if (
+    UIOptions.canvasActions.toggleTheme === null &&
+    typeof theme === "undefined"
+  ) {
+    UIOptions.canvasActions.toggleTheme = true;
+  }
+
+  const normalizedImageOptions: AppProps["imageOptions"] = {
+    maxFileSizeBytes:
+      imageOptions?.maxFileSizeBytes ?? DEFAULT_IMAGE_OPTIONS.maxFileSizeBytes,
+    maxWidthOrHeight:
+      imageOptions?.maxWidthOrHeight ?? DEFAULT_IMAGE_OPTIONS.maxWidthOrHeight,
+  };
+
+  const setExcalidrawAPI = useContext(ExcalidrawAPISetContext);
+
+  const onExcalidrawAPIRef = useRef(onExcalidrawAPI);
+  onExcalidrawAPIRef.current = onExcalidrawAPI;
+
+  const handleExcalidrawAPI = useCallback(
+    (api: ExcalidrawImperativeAPI | null) => {
+      setExcalidrawAPI?.(api);
+      onExcalidrawAPIRef.current?.(api);
+    },
+    [setExcalidrawAPI],
+  );
+
+  useEffect(() => {
+    const importPolyfill = async () => {
+      //@ts-ignore
+      await import("canvas-roundrect-polyfill");
+    };
+
+    importPolyfill();
+
+    // Block pinch-zooming on iOS outside of the content area
+    const handleTouchMove = (event: TouchEvent) => {
+      // @ts-ignore
+      if (typeof event.scale === "number" && event.scale !== 1) {
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener("touchmove", handleTouchMove, {
+      passive: false,
+    });
+
+    return () => {
+      document.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, []);
+
+  return (
+    <EditorJotaiProvider store={editorJotaiStore}>
+      <InitializeApp langCode={langCode} theme={theme}>
+        <App
+          onExport={onExport}
+          onChange={onChange}
+          onIncrement={onIncrement}
+          initialData={initialData}
+          onExcalidrawAPI={handleExcalidrawAPI}
+          onMount={onMount}
+          onUnmount={onUnmount}
+          onInitialize={onInitialize}
+          isCollaborating={isCollaborating}
+          onPointerUpdate={onPointerUpdate}
+          renderTopLeftUI={renderTopLeftUI}
+          renderTopRightUI={renderTopRightUI}
+          langCode={langCode}
+          viewModeEnabled={viewModeEnabled}
+          zenModeEnabled={zenModeEnabled}
+          gridModeEnabled={gridModeEnabled}
+          libraryReturnUrl={libraryReturnUrl}
+          theme={theme}
+          name={name}
+          renderCustomStats={renderCustomStats}
+          UIOptions={UIOptions}
+          onPaste={onPaste}
+          onReformatSelection={onReformatSelection}
+          onOcrImage={props.onOcrImage}
+          detectScroll={detectScroll}
+          handleKeyboardGlobally={handleKeyboardGlobally}
+          pagesEnabled={pagesEnabled}
+          sidebarWidth={sidebarWidth}
+          onLibraryChange={onLibraryChange}
+          autoFocus={autoFocus}
+          generateIdForFile={generateIdForFile}
+          onLinkOpen={onLinkOpen}
+          generateLinkForSelection={generateLinkForSelection}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+          onScrollChange={onScrollChange}
+          onDuplicate={onDuplicate}
+          validateEmbeddable={validateEmbeddable}
+          renderEmbeddable={renderEmbeddable}
+          aiEnabled={aiEnabled !== false}
+          showDeprecatedFonts={showDeprecatedFonts}
+          renderScrollbars={renderScrollbars}
+          imageOptions={normalizedImageOptions}
+          panelBridge={panelBridge}
+          panelOcr={panelOcr}
+          panelScreenshot={panelScreenshot}
+          panelDraft={panelDraft}
+          panelRun={panelRun}
+          panelCopy={panelCopy}
+          panelCaptions={panelCaptions}
+          panelMirror={panelMirror}
+        >
+          {children}
+        </App>
+      </InitializeApp>
+    </EditorJotaiProvider>
+  );
+};
+
+const areEqual = (prevProps: ExcalidrawProps, nextProps: ExcalidrawProps) => {
+  // short-circuit early
+  if (prevProps.children !== nextProps.children) {
+    return false;
+  }
+
+  const {
+    initialData: prevInitialData,
+    UIOptions: prevUIOptions = {},
+    imageOptions: prevImageOptions,
+    ...prev
+  } = prevProps;
+  const {
+    initialData: nextInitialData,
+    UIOptions: nextUIOptions = {},
+    imageOptions: nextImageOptions,
+    ...next
+  } = nextProps;
+
+  // comparing UIOptions
+  const prevUIOptionsKeys = Object.keys(prevUIOptions) as (keyof Partial<
+    typeof DEFAULT_UI_OPTIONS
+  >)[];
+  const nextUIOptionsKeys = Object.keys(nextUIOptions) as (keyof Partial<
+    typeof DEFAULT_UI_OPTIONS
+  >)[];
+
+  if (prevUIOptionsKeys.length !== nextUIOptionsKeys.length) {
+    return false;
+  }
+
+  const isUIOptionsSame = prevUIOptionsKeys.every((key) => {
+    if (key === "getFormFactor") {
+      return true;
+    }
+    if (key === "canvasActions") {
+      const canvasOptionKeys = Object.keys(
+        prevUIOptions.canvasActions!,
+      ) as (keyof Partial<typeof DEFAULT_UI_OPTIONS.canvasActions>)[];
+      return canvasOptionKeys.every((key) => {
+        if (
+          key === "export" &&
+          prevUIOptions?.canvasActions?.export &&
+          nextUIOptions?.canvasActions?.export
+        ) {
+          return (
+            prevUIOptions.canvasActions.export.saveFileToDisk ===
+            nextUIOptions.canvasActions.export.saveFileToDisk
+          );
+        }
+        return (
+          prevUIOptions?.canvasActions?.[key] ===
+          nextUIOptions?.canvasActions?.[key]
+        );
+      });
+    }
+    return prevUIOptions[key] === nextUIOptions[key];
+  });
+
+  const isImageOptionsSame =
+    (prevImageOptions?.maxWidthOrHeight ??
+      DEFAULT_IMAGE_OPTIONS.maxWidthOrHeight) ===
+      (nextImageOptions?.maxWidthOrHeight ??
+        DEFAULT_IMAGE_OPTIONS.maxWidthOrHeight) &&
+    (prevImageOptions?.maxFileSizeBytes ??
+      DEFAULT_IMAGE_OPTIONS.maxFileSizeBytes) ===
+      (nextImageOptions?.maxFileSizeBytes ??
+        DEFAULT_IMAGE_OPTIONS.maxFileSizeBytes);
+
+  return isUIOptionsSame && isImageOptionsSame && isShallowEqual(prev, next);
+};
+
+export const Excalidraw = React.memo(ExcalidrawBase, areEqual);
+Excalidraw.displayName = "Excalidraw";
+
+export {
+  getSceneVersion,
+  hashElementsVersion,
+  hashString,
+  getNonDeletedElements,
+} from "@excalidraw/element";
+
+export { getTextFromElements } from "@excalidraw/element";
+export { isInvisiblySmallElement } from "@excalidraw/element";
+
+export { defaultLang, useI18n, languages } from "./i18n";
+export {
+  restoreAppState,
+  restoreElement,
+  restoreElements,
+  restoreLibraryItems,
+} from "./data/restore";
+
+export { reconcileElements } from "./data/reconcile";
+
+export {
+  exportToCanvas,
+  exportToBlob,
+  exportToSvg,
+  exportToClipboard,
+} from "@excalidraw/utils/export";
+
+export { serializeAsJSON, serializeLibraryAsJSON } from "./data/json";
+export {
+  loadFromBlob,
+  loadSceneOrLibraryFromBlob,
+  loadLibraryFromBlob,
+} from "./data/blob";
+export { mergeLibraryItems, getLibraryItemsHash } from "./data/library";
+export { isLinearElement } from "@excalidraw/element";
+
+export {
+  FONT_FAMILY,
+  THEME,
+  MIME_TYPES,
+  ROUNDNESS,
+  DEFAULT_LASER_COLOR,
+  UserIdleState,
+  normalizeLink,
+  sceneCoordsToViewportCoords,
+  viewportCoordsToSceneCoords,
+  getFormFactor,
+  throttleRAF,
+} from "@excalidraw/common";
+
+export {
+  mutateElement,
+  newElementWith,
+  bumpVersion,
+} from "@excalidraw/element";
+
+export { CaptureUpdateAction } from "@excalidraw/element";
+
+export { parseLibraryTokensFromUrl, useHandleLibrary } from "./data/library";
+
+export { Sidebar } from "./components/Sidebar/Sidebar";
+export { Button } from "./components/Button";
+export { Footer };
+export { MainMenu };
+export { Ellipsify } from "./components/Ellipsify";
+export {
+  useEditorInterface,
+  useStylesPanelMode,
+  useExcalidrawAPI,
+  ExcalidrawAPIContext,
+} from "./components/App";
+
+export { WelcomeScreen };
+export { LiveCollaborationTrigger };
+export { Stats } from "./components/Stats";
+
+export { DefaultSidebar } from "./components/DefaultSidebar";
+export { TTDDialog } from "./components/TTDDialog/TTDDialog";
+export { TTDDialogTrigger } from "./components/TTDDialog/TTDDialogTrigger";
+export { TTDStreamFetch } from "./components/TTDDialog/utils/TTDStreamFetch";
+export type {
+  TTDPersistenceAdapter,
+  SavedChat,
+  SavedChats,
+} from "./components/TTDDialog/types";
+
+export { zoomToFitBounds } from "./actions/actionCanvas";
+export {
+  getCommonBounds,
+  getVisibleSceneBounds,
+  convertToExcalidrawElements,
+} from "@excalidraw/element";
+
+export {
+  elementsOverlappingBBox,
+  isElementInsideBBox,
+  elementPartiallyOverlapsWithOrContainsBBox,
+} from "@excalidraw/utils/withinBounds";
+
+export { DiagramToCodePlugin } from "./components/DiagramToCodePlugin/DiagramToCodePlugin";
+export { getDataURL } from "./data/blob";
+export { isElementLink } from "@excalidraw/element";
+
+export { Fonts } from "./fonts/Fonts";
+
+export { setCustomTextMetricsProvider } from "@excalidraw/element";
+
+// ---------------------------------------------------------------------------
+// pages system
+// ---------------------------------------------------------------------------
+export {
+  PAGE_WIDTH,
+  PAGE_HEIGHT,
+  PAGE_GAP,
+  PAGE_SPACING,
+  CONTENT_SCALE_STEP,
+  DEFAULT_PAGE_ID,
+  DEFAULT_SIDEBAR_WIDTH,
+} from "./types";
+export type {
+  ExcalidrawPage,
+  PageDecoration,
+  PageRect,
+  ResolvedExcalidrawPage,
+} from "./types";
+export {
+  getPageRectByIndex,
+  getPageRectAtIndex,
+  getPageRect,
+  getPageIndex,
+  getCurrentPageRect,
+  getFitPageZoom,
+  clampCameraToPage,
+  getCameraForPage,
+  getPageRelativeCamera,
+  getCameraFromPageRelative,
+  getElementsForPage,
+  getOrderedElementsForPage,
+  getDefaultPage,
+  stampCurrentPage,
+  getPageViewportWidth,
+  MIN_PAGE_VIEWPORT_WIDTH,
+  normalizePage,
+  getPageSize,
+  scalePageContent,
+  deletePage,
+  deletePageElements,
+  translateContentForPageLayout,
+  insertPageAfter,
+  growPagesToFitContent,
+  getPageClampRect,
+  paginateContentIntoPages,
+  PAGE_SIZE_PRESETS,
+  getPageSizeForPreset,
+  getPageSizePresetForPage,
+  getPageDecoration,
+  updatePage,
+} from "./scene";
+
+export {
+  codePanelContent,
+  codePanelFileName,
+  codePanelSize,
+  DEFAULT_CODE_PANEL_VIEW,
+  emptyCodePanelState,
+  isBridgeCodePanel,
+  panelViewUpdate,
+  readCodePanelState,
+  readPanelDraft,
+  readPanelReadLanguage,
+  readPanelView,
+  readPanelZoom,
+  withCodePanelState,
+  withPanelDraft,
+  withPanelReadLanguage,
+  withPanelView,
+  withPanelZoom,
+} from "./scene/panelContent";
+export type {
+  CodePanelContent,
+  CodePanelConsoleLine,
+  CodePanelDraft,
+  CodePanelOutputLine,
+  CodePanelRunState,
+  CodePanelState,
+  CodePanelView,
+  PanelBridgeStatus,
+  PanelViewUpdate,
+} from "./scene/panelContent";
+
+// the language registry: the library owns it and the HOST fills it, so the
+// published package never grows a grammar dependency
+export {
+  codeMirrorLanguageIds,
+  loadCodeMirrorLanguage,
+  registerCodeMirrorLanguage,
+} from "./components/codeLanguages";
+export type { CodeMirrorLanguageLoader } from "./components/codeLanguages";
+
+// the live view of the code panels: the registry that holds it, and the
+// reason it is NOT the element's payload
+export {
+  clearAllPanelCaptures,
+  clearPanelCapture,
+  getPanelCapture,
+  setPanelCapture,
+  subscribePanelCaptures,
+} from "./scene/panelFrames";
+export type {
+  PanelCapture,
+  PanelCaptureLive,
+  PanelCaptureUnavailable,
+} from "./scene/panelFrames";
+
+// the screenshot of a panel: the pending picture, the choice strip's three
+// entries, and the editor's window as a picture
+export {
+  clearAllPendingScreenshots,
+  clearPendingScreenshot,
+  fetchEditorSnapshot,
+  getAnyPendingScreenshot,
+  getPendingScreenshot,
+  movePendingScreenshot,
+  revertPendingScreenshotCrop,
+  setPendingScreenshot,
+  setPendingScreenshotCrop,
+  setPendingScreenshotStage,
+  snapshotUrl,
+  subscribePendingScreenshots,
+  WHOLE_PICTURE,
+} from "./scene/panelScreenshot";
+export type {
+  PanelScreenshot,
+  PanelScreenshotChoice,
+  PanelScreenshotCrop,
+  PanelScreenshotPicture,
+  PanelScreenshotPlacing,
+  PanelScreenshotSource,
+  PanelScreenshotStage,
+} from "./scene/panelScreenshot";
+
+// the video panel: the payload's video kind, the caption binding, and the
+// caption logic (the cues, the cue that is on screen, the caption element)
+export {
+  captionBindingUpdate,
+  panelPlaybackUpdate,
+  readCaptionBinding,
+  readPanelPlayback,
+  readVideoPanelState,
+  readYoutubePanelState,
+  videoFormatName,
+  videoPanelContent,
+  withVideoPanelState,
+  withYoutubePanelState,
+  youtubeEmbedUrl,
+  youtubePanelContent,
+} from "./scene/panelContent";
+export type {
+  CaptionBinding,
+  CaptionBoundPanel,
+  PanelCaptionTier,
+  PanelPlayback,
+  PlaybackPanel,
+  VideoPanelContent,
+  VideoPanelElement,
+  VideoPanelSource,
+  VideoPanelState,
+  YoutubePanelContent,
+  YoutubePanelSource,
+  YoutubePanelState,
+} from "./scene/panelContent";
+
+// the media registry: the library owns the SHAPE and the host owns the BYTES
+//. The host registers a resolver; the library asks it for a URL.
+export {
+  hasMediaResolver,
+  isMediaPanelSource,
+  panelSource,
+  registerMediaResolver,
+  resolveMediaUrl,
+} from "./scene/mediaRegistry";
+export type {
+  MediaPanelSource,
+  MediaResolver,
+  PanelSource,
+} from "./scene/mediaRegistry";
+
+// the playback sync of a video panel: the rule that keeps the presenter's
+// video in step with the editor's
+export {
+  appliedPlaybackState,
+  INITIAL_PLAYBACK_SYNC_STATE,
+  PLAYBACK_HARD_SEEK_SECONDS,
+  PLAYBACK_LOCAL_CLOCK_MS,
+  PLAYBACK_MAX_RATE,
+  PLAYBACK_MIN_RATE,
+  PLAYBACK_PUBLISH_INTERVAL_MS,
+  PLAYBACK_SOFT_SEEK_SECONDS,
+  playbackCorrection,
+} from "./scene/panelPlayback";
+export type {
+  PlaybackCorrection,
+  PlaybackSyncState,
+} from "./scene/panelPlayback";
+export {
+  captionCueAt,
+  captionTextElement,
+  DEFAULT_CAPTION_LANGUAGE,
+  parseCaptionTrack,
+  parseSrtCues,
+  parseVttCues,
+  selectCaptionTrack,
+} from "./components/panelCaptions";
+export type { VideoPanelEvent } from "./components/PanelOverlay";
+export type {
+  PanelBridgeControls,
+  PanelCaptionControls,
+  PanelCopyControls,
+  PanelDraftControls,
+  PanelMirrorControls,
+  PanelOcrControls,
+  PanelRunControls,
+  PanelScreenshotControls,
+} from "./types";
+
+// what is mirrored of the editor's window: the region, and the mode
+// that moves it
+export type { PanelMirror, PanelMirrorRegion } from "./scene/panelMirror";
+export {
+  INITIAL_PANEL_MIRROR,
+  normalizePanelMirrorRegion,
+  panelMirrorCrop,
+  panelMirrorRegionAtPointer,
+  WHOLE_WINDOW,
+} from "./scene/panelMirror";
+
+// the live video surface: the frame the teacher is looking at, so a host can
+// read the text out of it
+export {
+  captureVideoFrame,
+  capturePausedVideoFrame,
+  getVideoSurface,
+} from "./components/videoPanelSurface";
+
+export { CommandPalette } from "./components/CommandPalette/CommandPalette";
+
+export {
+  renderSpreadsheet,
+  tryParseSpreadsheet,
+  isSpreadsheetValidForChartType,
+} from "./charts";
+
+// -----------------------------------------------------------------------------
+// useExcalidrawStateValue() wrapper for host apps for the return type to reflect the
+// the potentially `undefined` value for initial render before the excalidrawAPI
+// is ready.
+//
+/**
+ * hook that subscribes to specific appState prop(s)
+ *
+ * @param prop - appState prop(s) to subscribe to, or a selector function.
+ * NOTE `prop/selector` is memoized and will not change after initial render
+ */
+export function useExcalidrawStateValue<K extends keyof AppState>(
+  prop: K,
+): AppState[K] | undefined;
+export function useExcalidrawStateValue<T extends keyof AppState>(
+  props: T[],
+): AppState | undefined;
+export function useExcalidrawStateValue<T>(
+  selector: (appState: AppState) => T,
+): T | undefined;
+export function useExcalidrawStateValue(
+  selector:
+    | keyof AppState
+    | (keyof AppState)[]
+    | ((appState: AppState) => unknown),
+) {
+  return _useAppStateValue(selector as any, false);
+}
+// -----------------------------------------------------------------------------
+
+export { _useOnAppStateChange as useOnExcalidrawStateChange };

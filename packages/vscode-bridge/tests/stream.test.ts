@@ -1,0 +1,447 @@
+/**
+ * The **MJPEG stream** - the live view of the editor's own window.
+ *
+ * The rows named in the test titles are the rows of SPEC.md - the kit's SPEC
+ * lint reads this file and fails if a row id is missing.
+ *
+ * The frames do not travel over the websocket: the extension serves them from
+ * the HTTP server it already has, and the panel plays that stream in a plain
+ * `<img>`. The stream is authorised by a per-connection capability that is
+ * issued in the `bridge:hello`.
+ */
+
+import { get as httpGet } from "node:http";
+
+import { afterEach, describe, expect, it } from "vitest";
+
+import {
+  encodeBridgeMessage,
+  parseBridgeMessage,
+  type BridgeMessage,
+} from "../bridge/src/protocol";
+import {
+  createBridgeServer,
+  type BridgeServer,
+  type BridgeServerOptions,
+} from "../extension/src/bridge";
+import { snapshotPath } from "../extension/src/stream";
+
+import { RawWsClient } from "./helpers/rawWsClient";
+
+// A fixture, not a credential: the name says so, and the kit's secret scan
+// recognises a `test-` prefixed value as the placeholder it is.
+const TOKEN = "test-per-session-token-that-must-never-leak";
+
+const servers: BridgeServer[] = [];
+const clients: RawWsClient[] = [];
+
+const startServer = async (
+  options: Partial<BridgeServerOptions> = {},
+): Promise<BridgeServer> => {
+  const server = createBridgeServer({
+    port: 0,
+    token: TOKEN,
+    workspace: "excalidraw",
+    version: "0.1.0",
+    ...options,
+  });
+  servers.push(server);
+  await server.listen();
+  return server;
+};
+
+const connect = async (server: BridgeServer): Promise<RawWsClient> => {
+  const client = new RawWsClient({ port: server.port });
+  clients.push(client);
+  await client.waitForHandshake();
+  return client;
+};
+
+const auth = (client: RawWsClient, token = TOKEN) => {
+  client.send(encodeBridgeMessage({ v: 1, type: "bridge:auth", token }));
+};
+
+/** The `bridge:hello` of a connection, with the stream's URL in it. */
+const helloOf = async (client: RawWsClient): Promise<BridgeMessage> => {
+  const frame = await client.waitForMessage((candidate) =>
+    candidate.payload.toString("utf8").includes("bridge:hello"),
+  );
+  const parsed = parseBridgeMessage(frame.payload.toString("utf8"));
+
+  if (!parsed) {
+    throw new Error("the hello did not parse");
+  }
+
+  return parsed;
+};
+
+/** Waits for a condition - the frames arrive on the next tick. */
+const until = async (condition: () => boolean): Promise<void> => {
+  for (let attempt = 0; attempt < 200; attempt++) {
+    if (condition()) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  throw new Error("the condition was not met in time");
+};
+
+/** An open HTTP response, collected as it arrives. */
+interface OpenedStream {
+  status: number;
+  headers: Record<string, string | string[] | undefined>;
+  body: string;
+  close: () => void;
+}
+
+const openStream = (url: string): Promise<OpenedStream> =>
+  new Promise((resolve, reject) => {
+    const request = httpGet(url, (response) => {
+      const stream: OpenedStream = {
+        status: response.statusCode ?? 0,
+        headers: response.headers,
+        body: "",
+        close: () => {
+          request.destroy();
+        },
+      };
+
+      response.setEncoding("binary");
+      response.on("data", (chunk: string) => {
+        stream.body += chunk;
+      });
+      response.on("end", () => {
+        // nothing to do: the body is complete
+      });
+
+      resolve(stream);
+    });
+
+    request.on("error", (error) => {
+      reject(error);
+    });
+  });
+
+/** A request that is answered and finished - a refusal, for instance. */
+const fetchToEnd = async (
+  url: string,
+): Promise<{ status: number; body: string }> =>
+  new Promise((resolve, reject) => {
+    const request = httpGet(url, (response) => {
+      let body = "";
+
+      response.setEncoding("utf8");
+      response.on("data", (chunk: string) => {
+        body += chunk;
+      });
+      response.on("end", () =>
+        resolve({ status: response.statusCode ?? 0, body }),
+      );
+    });
+
+    request.on("error", reject);
+  });
+
+/**
+ * A request for the **snapshot**: one JPEG, with its headers.
+ *
+ * The body is read as binary, because a JPEG is not text. The `origin` is the
+ * page's own origin - the app is on `http://localhost:3001` and this server is
+ * on `http://127.0.0.1:47511`, so they are **different** origins and the
+ * browser's cross-origin rules apply.
+ */
+const fetchSnapshot = async (
+  url: string,
+  options: { origin?: string } = {},
+): Promise<{
+  status: number;
+  headers: Record<string, string | string[] | undefined>;
+  body: string;
+}> =>
+  new Promise((resolve, reject) => {
+    const request = httpGet(
+      url,
+      options.origin ? { headers: { origin: options.origin } } : {},
+      (response) => {
+        let body = "";
+
+        response.setEncoding("binary");
+        response.on("data", (chunk: string) => {
+          body += chunk;
+        });
+        response.on("end", () =>
+          resolve({
+            status: response.statusCode ?? 0,
+            headers: response.headers,
+            body,
+          }),
+        );
+      },
+    );
+
+    request.on("error", reject);
+  });
+
+/** A JPEG, small and real enough. */
+const jpeg = (marker = 0): Buffer =>
+  Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, marker]);
+
+afterEach(async () => {
+  for (const client of clients.splice(0)) {
+    client.close();
+  }
+  for (const server of servers.splice(0)) {
+    await server.close();
+  }
+});
+
+describe("the MJPEG stream", () => {
+  it("the extension serves the frames as MJPEG on its own HTTP server", async () => {
+    const server = await startServer();
+    const client = await connect(server);
+
+    auth(client);
+
+    const hello = await helloOf(client);
+
+    expect(hello.type).toBe("bridge:hello");
+
+    const streamUrl = (hello as { streamUrl?: string }).streamUrl;
+
+    // the hello carries the stream's URL, and it is on the extension's own
+    // HTTP server - the same port the websocket is on
+    expect(streamUrl).toBeTruthy();
+    expect(streamUrl!.startsWith(`http://127.0.0.1:${server.port}/s/`)).toBe(
+      true,
+    );
+
+    // a frame is published to the stream
+    const picture = jpeg(1);
+    server.publishFrame({ bytes: picture, seq: 1 });
+
+    const stream = await openStream(streamUrl!);
+
+    expect(stream.status).toBe(200);
+    expect(stream.headers["content-type"]).toBe(
+      "multipart/x-mixed-replace; boundary=frame",
+    );
+
+    // The LAST frame goes out immediately, so a panel that opens the live
+    // view is never blank.
+    await until(() => stream.body.includes("X-Seq: 1"));
+
+    // and the part is the boundary, the JPEG's headers and the bytes
+    expect(stream.body).toContain("--frame\r\nContent-Type: image/jpeg\r\n");
+    expect(stream.body).toContain(`Content-Length: ${picture.length}\r\n`);
+    expect(stream.body).toContain("X-Seq: 1\r\n\r\n");
+    expect(stream.body).toContain(picture.toString("binary"));
+
+    // a NEW frame reaches the stream that is already open
+    const second = jpeg(2);
+    server.publishFrame({ bytes: second, seq: 2 });
+
+    await until(() => stream.body.includes("X-Seq: 2"));
+
+    expect(stream.body).toContain(second.toString("binary"));
+
+    stream.close();
+  });
+
+  it("the stream endpoint refuses a request without the connection's capability, and two connections get different capabilities", async () => {
+    const server = await startServer();
+
+    const first = await connect(server);
+    auth(first);
+    const firstHello = await helloOf(first);
+
+    const second = await connect(server);
+    auth(second);
+    const secondHello = await helloOf(second);
+
+    const firstUrl = (firstHello as { streamUrl?: string }).streamUrl;
+    const secondUrl = (secondHello as { streamUrl?: string }).streamUrl;
+
+    // TWO connections, TWO capabilities
+    expect(firstUrl).toBeTruthy();
+    expect(secondUrl).toBeTruthy();
+    expect(firstUrl).not.toBe(secondUrl);
+
+    // and the capability is 32 hex characters: unguessable
+    const capability = firstUrl!.split("/s/")[1]?.split("/")[0] ?? "";
+
+    expect(capability).toMatch(/^[0-9a-f]{32}$/);
+
+    // The session TOKEN is never in a URL: the two secrets have
+    // different jobs, different lifetimes and different places.
+    expect(firstUrl).not.toContain(TOKEN);
+    expect(secondUrl).not.toContain(TOKEN);
+
+    // a request with a capability that was NEVER issued is refused
+    const refused = await fetchToEnd(
+      `http://127.0.0.1:${server.port}/s/${"0".repeat(32)}/frame`,
+    );
+
+    expect(refused.status).toBe(404);
+
+    // and a request with NO capability at all is refused too
+    const noCapability = await fetchToEnd(
+      `http://127.0.0.1:${server.port}/s//frame`,
+    );
+
+    expect(noCapability.status).toBe(404);
+
+    // the capability dies with its connection: the connection is closed, and
+    // the URL that was issued for it stops working
+    first.close();
+
+    await until(() => server.clientCount === 1);
+
+    const afterClose = await fetchToEnd(firstUrl!);
+
+    expect(afterClose.status).toBe(404);
+
+    // while the OTHER connection's capability still works
+    const stillWorks = await openStream(secondUrl!);
+
+    expect(stillWorks.status).toBe(200);
+
+    stillWorks.close();
+  });
+
+  it("the extension serves the last frame as ONE JPEG on the snapshot path", async () => {
+    const server = await startServer();
+    const client = await connect(server);
+
+    auth(client);
+
+    const hello = await helloOf(client);
+    const streamUrl = (hello as { streamUrl?: string }).streamUrl!;
+
+    // The snapshot is the stream's URL with ONE more path segment, under the
+    // SAME capability: the capability that authorises the stream authorises
+    // the snapshot, because it is the same picture of the same window
+    //.
+    const snapshotUrl = streamUrl.replace(/\/frame$/, "/snapshot");
+
+    expect(snapshotUrl.endsWith("/snapshot")).toBe(true);
+    expect(snapshotUrl).toContain("/s/");
+
+    // the extension's own path for the snapshot, and the URL the app derives
+    // from the connection's stream URL, are the same thing
+    const capability = streamUrl.split("/s/")[1]?.split("/")[0] ?? "";
+
+    expect(snapshotPath(capability)).toBe(`/s/${capability}/snapshot`);
+    expect(snapshotUrl.endsWith(snapshotPath(capability))).toBe(true);
+
+    // before there is a frame there is nothing to hand over
+    const empty = await fetchSnapshot(snapshotUrl);
+
+    expect(empty.status).toBe(404);
+
+    // a frame is published: the extension already holds it
+    const picture = jpeg(3);
+    server.publishFrame({ bytes: picture, seq: 1, width: 1295, height: 687 });
+
+    const snapshot = await fetchSnapshot(snapshotUrl);
+
+    expect(snapshot.status).toBe(200);
+    expect(snapshot.headers["content-type"]).toBe("image/jpeg");
+
+    // the picture's own size travels in the headers: the app has to know how
+    // big it is before it draws it, and it must not decode an image to learn
+    // its size
+    expect(snapshot.headers["x-frame-width"]).toBe("1295");
+    expect(snapshot.headers["x-frame-height"]).toBe("687");
+
+    // and the body is ONE JPEG - the bytes the stream would have sent
+    expect(snapshot.body).toBe(picture.toString("binary"));
+
+    // a capability that was never issued is refused, exactly as the stream
+    // refuses it
+    const refused = await fetchSnapshot(
+      `http://127.0.0.1:${server.port}/s/${"0".repeat(32)}/snapshot`,
+    );
+
+    expect(refused.status).toBe(404);
+  });
+
+  it("the snapshot answers a loopback origin with its own origin echoed back", async () => {
+    const server = await startServer();
+    const client = await connect(server);
+
+    auth(client);
+
+    const hello = await helloOf(client);
+    const streamUrl = (hello as { streamUrl?: string }).streamUrl!;
+    const snapshotUrl = streamUrl.replace(/\/frame$/, "/snapshot");
+
+    server.publishFrame({ bytes: jpeg(4), seq: 1 });
+
+    // The app is on `http://localhost:3001` and this server is on
+    // `http://127.0.0.1:47511`: they are DIFFERENT origins, and the app
+    // fetches the picture with a plain `fetch()`. Without the answer saying
+    // which origin may read it, a **stock** browser refuses the read and the
+    // screenshot fails with "Failed to fetch".
+    const snapshot = await fetchSnapshot(snapshotUrl, {
+      origin: "http://localhost:3001",
+    });
+
+    expect(snapshot.status).toBe(200);
+    expect(snapshot.headers["content-type"]).toBe("image/jpeg");
+
+    // the origin is echoed back - its OWN origin, not a wildcard
+    expect(snapshot.headers["access-control-allow-origin"]).toBe(
+      "http://localhost:3001",
+    );
+
+    // The picture's own size travels in the headers, and a header that
+    // is not CORS-safelisted is HIDDEN from the page's JavaScript unless the
+    // answer says it may be read - so the answer says it.
+    expect(snapshot.headers["access-control-expose-headers"]).toBe(
+      "x-frame-width, x-frame-height",
+    );
+
+    // and the loopback address is a loopback origin too
+    const other = await fetchSnapshot(snapshotUrl, {
+      origin: "http://127.0.0.1:3001",
+    });
+
+    expect(other.headers["access-control-allow-origin"]).toBe(
+      "http://127.0.0.1:3001",
+    );
+  });
+
+  it("a foreign origin is answered with no Access-Control-Allow-Origin", async () => {
+    const server = await startServer();
+    const client = await connect(server);
+
+    auth(client);
+
+    const hello = await helloOf(client);
+    const streamUrl = (hello as { streamUrl?: string }).streamUrl!;
+    const snapshotUrl = streamUrl.replace(/\/frame$/, "/snapshot");
+
+    server.publishFrame({ bytes: jpeg(5), seq: 1 });
+
+    // A page on another site gets NO header: the browser refuses to hand it
+    // the picture, which is the same rule the websocket's upgrade uses
+    //.
+    const foreign = await fetchSnapshot(snapshotUrl, {
+      origin: "https://evil.example.com",
+    });
+
+    expect(foreign.status).toBe(200);
+    expect(foreign.headers["access-control-allow-origin"]).toBeUndefined();
+    expect(foreign.headers["access-control-expose-headers"]).toBeUndefined();
+
+    // and the capability is still the authorisation: a foreign page
+    // with a capability that was never issued gets nothing at all
+    const neverIssued = await fetchSnapshot(
+      `http://127.0.0.1:${server.port}/s/${"0".repeat(32)}/snapshot`,
+      { origin: "https://evil.example.com" },
+    );
+
+    expect(neverIssued.status).toBe(404);
+    expect(neverIssued.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+});

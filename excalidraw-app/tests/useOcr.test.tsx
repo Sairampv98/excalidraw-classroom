@@ -1,0 +1,390 @@
+/**
+ * The app's side of the **OCR capability** for a screenshot and for an
+ * ordinary image.
+ *
+ * One OCR, not two: the screenshot's read is the project's existing OCR path —
+ * the same request the bridge's engine answers — and an ordinary image element
+ * is offered the same choice, because a screenshot the teacher pasted in by
+ * hand is an ordinary image.
+ *
+ * The rows named in the test titles are the rows of SPEC.md — the kit's SPEC
+ * lint reads this file and fails if a row id is missing.
+ */
+
+import { describe, expect, it, vi } from "vitest";
+
+import React from "react";
+
+import { renderHook } from "@testing-library/react";
+
+import {
+  clearAllPendingScreenshots,
+  Excalidraw,
+  setPendingScreenshot,
+} from "@excalidraw/excalidraw";
+import { API } from "@excalidraw/excalidraw/tests/helpers/api";
+import { UI } from "@excalidraw/excalidraw/tests/helpers/ui";
+import {
+  act,
+  fireEvent,
+  GlobalTestState,
+  render,
+  waitFor,
+} from "@excalidraw/excalidraw/tests/test-utils";
+
+import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
+import type {
+  ExcalidrawElement,
+  ExcalidrawPanelElement,
+  NonDeletedExcalidrawElement,
+} from "@excalidraw/element/types";
+
+import { useOcr } from "../bridge/useOcr";
+import { useScreenshot } from "../bridge/useScreenshot";
+import {
+  DEFAULT_PANEL_OCR_ENGINE,
+  OCR_ENGINE_CHOICES,
+  OCR_SPEED_COLORS,
+} from "../ocr/engines";
+
+import ExcalidrawApp from "../App";
+
+/** the context menu's entry for the read of an ordinary image */
+const OCR_IMAGE_ENTRY = 'li[data-testid="ocrImage"]';
+
+const renderEditor = async () => {
+  let api: ExcalidrawImperativeAPI | null = null;
+
+  await render(
+    <Excalidraw
+      onExcalidrawAPI={(next) => {
+        api = next;
+      }}
+    />,
+  );
+
+  await waitFor(() => expect(api).toBeTruthy());
+
+  return api!;
+};
+
+describe("reading the text out of a picture", () => {
+  it("the screenshot's OCR goes through the existing OCR request", async () => {
+    // the bridge's own OCR request: the engine lives in the bridge's Node
+    // process and never in the browser
+    const requestOcr = vi.fn(async (request: { imageBase64: string }) => {
+      expect(request.imageBase64).toBeTruthy();
+
+      return {
+        id: "ocr-1",
+        text: "hello",
+        lines: [{ text: "hello", x: 0, y: 0, width: 40, height: 12 }],
+      };
+    });
+
+    const api = await renderEditor();
+
+    // the app's existing OCR path...
+    const { result: ocr } = renderHook(() => useOcr({ api, requestOcr }));
+
+    // ... and the screenshot's choice, which uses it
+    const { result: screenshot } = renderHook(() =>
+      useScreenshot({ api, readOcr: ocr.current.read }),
+    );
+
+    act(() => {
+      setPendingScreenshot({
+        panelId: "panel-1",
+        source: "editor",
+        dataURL: "data:image/jpeg;base64,QUJD",
+        width: 1295,
+        height: 687,
+        x: 100,
+        y: 200,
+        canvasWidth: 460,
+        canvasHeight: 244,
+      });
+    });
+
+    await act(async () => {
+      await screenshot.current.choose("panel-1", "ocr");
+    });
+
+    // the read went through the EXISTING request, carrying the screenshot's
+    // own bytes
+    expect(requestOcr).toHaveBeenCalledTimes(1);
+    expect(requestOcr.mock.calls[0][0].imageBase64).toBe("QUJD");
+
+    // and the result landed as ordinary text elements over the picture -
+    // where the **teacher** says, not where the picture would go
+    await act(async () => {
+      screenshot.current.place("panel-1", { x: 300, y: 400 });
+    });
+
+    const texts = api
+      .getSceneElements()
+      .filter((element) => element.type === "text");
+
+    expect(texts.length).toBe(1);
+    expect(texts[0].text).toBe("hello");
+    expect(texts[0].x).toBe(300);
+    expect(texts[0].y).toBe(400);
+
+    clearAllPendingScreenshots();
+  });
+
+  it("an ordinary image element offers the same OCR choice", async () => {
+    await render(<ExcalidrawApp />);
+
+    // an ordinary image on the canvas — a screenshot the teacher pasted in by
+    // hand
+    const image = API.createElement({
+      type: "image",
+      x: 0,
+      y: 0,
+      width: 200,
+      height: 150,
+      fileId: "file-1",
+    });
+
+    API.setElements([image]);
+    API.setSelectedElements([image]);
+
+    await waitFor(() => expect(API.getSelectedElements().length).toBe(1));
+
+    fireEvent.contextMenu(GlobalTestState.interactiveCanvas, {
+      button: 2,
+      clientX: 10,
+      clientY: 10,
+    });
+
+    const menu = UI.queryContextMenu();
+
+    expect(menu).not.toBeNull();
+
+    // the choice is there: the same read, for an ordinary image
+    const entry = menu!.querySelector(OCR_IMAGE_ENTRY);
+
+    expect(entry).not.toBeNull();
+    expect(entry!.textContent).toBe("Read the text");
+  });
+
+  it("the context menu of an image offers the ocr entry even when the image was not selected", async () => {
+    // The owner's item 5.5: "normal image doesnot get this option".
+    //
+    // The entry belongs to the **picture the menu is about** - the one under
+    // the pointer - and not to the selection. It used to ask for a picture
+    // that was **already selected**, so it hid itself as soon as the
+    // selection was not the picture itself.
+    await render(<ExcalidrawApp />);
+
+    const image = API.createElement({
+      type: "image",
+      x: 0,
+      y: 0,
+      width: 200,
+      height: 150,
+      fileId: "file-1",
+    });
+
+    API.setElements([image]);
+
+    // the picture is on the canvas, and it is NOT selected
+    await waitFor(() => expect(API.getSelectedElements()).toHaveLength(0));
+
+    fireEvent.contextMenu(GlobalTestState.interactiveCanvas, {
+      button: 2,
+      clientX: 10,
+      clientY: 10,
+    });
+
+    const menu = UI.queryContextMenu();
+
+    expect(menu).not.toBeNull();
+
+    // the entry is there for the picture the menu is about
+    expect(menu!.querySelector(OCR_IMAGE_ENTRY)).not.toBeNull();
+
+    // and it stays there when the selection is not the picture: the entry is
+    // about the menu's element, and the selection is the teacher's own
+    // business
+    act(() => {
+      API.setSelectedElements([]);
+    });
+
+    await waitFor(() =>
+      expect(menu!.querySelector(OCR_IMAGE_ENTRY)).not.toBeNull(),
+    );
+  });
+
+  it("the ocr entry is not offered for an element that is not an image", async () => {
+    // The entry is about a **picture**: a rectangle cannot be read.
+    await render(<ExcalidrawApp />);
+
+    const rectangle = API.createElement({
+      type: "rectangle",
+      x: 0,
+      y: 0,
+      width: 200,
+      height: 150,
+    });
+
+    API.setElements([rectangle]);
+    API.setSelectedElements([rectangle]);
+
+    await waitFor(() => expect(API.getSelectedElements()).toHaveLength(1));
+
+    fireEvent.contextMenu(GlobalTestState.interactiveCanvas, {
+      button: 2,
+      clientX: 10,
+      clientY: 10,
+    });
+
+    const menu = UI.queryContextMenu();
+
+    expect(menu).not.toBeNull();
+    expect(menu!.querySelector(OCR_IMAGE_ENTRY)).toBeNull();
+  });
+});
+
+describe("the OCR engine picker", () => {
+  /** a panel on the canvas - the chrome is drawn for the SELECTED panel */
+  const panel = () =>
+    API.createElement({
+      type: "panel",
+      x: 100,
+      y: 100,
+      width: 400,
+      height: 300,
+      panelKind: "image",
+      panel: {
+        source: { type: "inline", payload: null },
+        options: { naturalWidth: 400, naturalHeight: 300, captions: null },
+      },
+      posterMode: false,
+      posterFileId: null,
+    }) as unknown as ExcalidrawPanelElement;
+
+  /** the editor, with the panel selected and the picker's engines offered */
+  const renderWithPicker = async () => {
+    const element = panel();
+
+    const { container } = await render(
+      <Excalidraw
+        initialData={{ elements: [element] as unknown as ExcalidrawElement[] }}
+        panelOcr={{
+          message: "Read the text with the bridge.",
+          onOcr: () => undefined,
+          engines: OCR_ENGINE_CHOICES,
+          engineFor: () => DEFAULT_PANEL_OCR_ENGINE,
+          onSelectEngine: () => undefined,
+        }}
+      />,
+    );
+
+    API.setAppState({ width: 1000, height: 1000 });
+    API.setSelectedElements([
+      element as unknown as NonDeletedExcalidrawElement,
+    ]);
+
+    return container;
+  };
+
+  it("the read button carries a picker with the three engines", async () => {
+    const container = await renderWithPicker();
+
+    // the read button is there, and the picker is beside it
+    expect(
+      container.querySelector('[data-testid="panel-ocr-button"]'),
+    ).not.toBeNull();
+
+    const picker = container.querySelector(
+      '[data-testid="panel-ocr-engine-button"]',
+    ) as HTMLButtonElement | null;
+
+    expect(picker).not.toBeNull();
+
+    // the list is closed to begin with
+    expect(
+      container.querySelector('[data-testid="panel-ocr-engine-list"]'),
+    ).toBeNull();
+
+    await act(async () => {
+      fireEvent.click(picker!);
+    });
+
+    const entries = container.querySelectorAll(
+      '[data-testid="panel-ocr-engine"]',
+    );
+
+    expect(entries.length).toBe(3);
+
+    // and they are the three engines
+    expect(
+      Array.from(entries).map((entry) => entry.getAttribute("data-engine")),
+    ).toEqual(["indra", "tesseract", "paddle"]);
+  });
+
+  it("the picker marks each engine with its measured speed colour", async () => {
+    const container = await renderWithPicker();
+
+    await act(async () => {
+      fireEvent.click(
+        container.querySelector('[data-testid="panel-ocr-engine-button"]')!,
+      );
+    });
+
+    const entries = Array.from(
+      container.querySelectorAll('[data-testid="panel-ocr-engine"]'),
+    );
+
+    expect(entries.length).toBe(3);
+
+    // the traffic lights the owner asked for: green for the fastest, amber
+    // for the one in the middle, red for the slowest
+    const colours = entries.map((entry) => {
+      const dot = entry.querySelector(
+        '[data-testid="panel-ocr-engine-dot"]',
+      ) as HTMLElement | null;
+
+      expect(dot).not.toBeNull();
+
+      return dot!.style.backgroundColor;
+    });
+
+    expect(colours).toEqual([
+      OCR_SPEED_COLORS.fast,
+      OCR_SPEED_COLORS.middle,
+      OCR_SPEED_COLORS.slow,
+    ]);
+
+    // and the number beside the name is the project's own measurement
+    expect(entries[0].textContent).toContain(
+      `${OCR_ENGINE_CHOICES[0].measuredMs} ms`,
+    );
+  });
+
+  it("the default engine is indra", async () => {
+    // the default is the **fastest measured** engine, derived from the
+    // project's own record - not a claim
+    expect(DEFAULT_PANEL_OCR_ENGINE).toBe("indra");
+
+    const fastest = OCR_ENGINE_CHOICES.reduce((a, b) =>
+      a.measuredMs <= b.measuredMs ? a : b,
+    );
+
+    expect(fastest.id).toBe("indra");
+    expect(DEFAULT_PANEL_OCR_ENGINE).toBe(fastest.id);
+
+    // and the picker shows it, so the teacher can see what a read will use
+    const container = await renderWithPicker();
+
+    const picker = container.querySelector(
+      '[data-testid="panel-ocr-engine-button"]',
+    ) as HTMLButtonElement | null;
+
+    expect(picker).not.toBeNull();
+    expect(picker!.getAttribute("data-engine")).toBe("indra");
+    expect(picker!.textContent).toContain("indra");
+  });
+});

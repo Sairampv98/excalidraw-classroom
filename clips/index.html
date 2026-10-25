@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Excalidraw for the classroom - the clips</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #ffffff;
+        --fg: #1b1b1f;
+        --muted: #6b6b76;
+        --line: #e6e6ea;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #141416;
+          --fg: #f2f2f5;
+          --muted: #a0a0ab;
+          --line: #2b2b30;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px 24px 64px;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 28px;
+        margin: 0 0 6px;
+      }
+      p.lede {
+        color: var(--muted);
+        margin: 0 0 28px;
+      }
+      .grid {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      }
+      .clip {
+        margin: 0;
+      }
+      video {
+        width: 100%;
+        display: block;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: #000;
+        aspect-ratio: 16 / 9;
+      }
+      figcaption {
+        margin-top: 8px;
+        font-size: 14px;
+      }
+      figcaption strong {
+        display: block;
+        text-transform: capitalize;
+        letter-spacing: 0.01em;
+      }
+      figcaption span {
+        color: var(--muted);
+      }
+      footer {
+        margin-top: 40px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>The clips</h1>
+      <p class="lede">
+        One short recording per feature. They are recorded on one machine, on
+        one browser - they are a demonstration, not a benchmark.
+      </p>
+      <div class="grid">
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="01-panels-on-the-canvas.mp4"
+          ></video>
+          <figcaption>
+            <strong>panels on the canvas</strong
+            ><span
+              >A code panel inserted from the main menu and a video panel
+              dropped from the Files sidebar, both on the canvas: the code
+              panel's own chrome (language picker, "Copy as code block", zoom)
+              and the video player's controls, the panels floating free on the
+              canvas and then selected.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="02-properties-panel-actions.mp4"
+          ></video>
+          <figcaption>
+            <strong>properties panel actions</strong
+            ><span
+              >A code panel selected, with its controls in the properties panel
+              on the left - Panel / Kind: code / State: Live, and the Actions:
+              the camera, "Read the text" with its "indra" engine picker and the
+              Bridge box - while the picture on the canvas carries none of
+              them.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="03-crop-and-read.mp4"
+          ></video>
+          <figcaption>
+            <strong>crop and read</strong
+            ><span
+              >The panel screenshotted, the region cropped with the mouse, and
+              the read run as one action: the properties panel says "Reading the
+              text…" while it reads, then "Read 12 lines with tesseract in 936
+              ms. indra was not used: the OCR sidecar is not running." - the
+              engine it used, and why it did not use the one above it - and the
+              text lands on the canvas, per line.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="04-the-crop-crops.mp4"
+          ></video>
+          <figcaption>
+            <strong>the crop crops</strong
+            ><span
+              >A video panel screenshotted from the properties panel, a real
+              mouse drag of a crop handle so the picture shrinks to the cropped
+              region, and the picture that lands on the canvas visibly smaller
+              and showing only the cropped region.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="05-placement-flows.mp4"
+          ></video>
+          <figcaption>
+            <strong>placement flows</strong
+            ><span
+              >The placement flow in order: the crop first, then the choice
+              ("Place on a new page" and the page selector ribbon), then the
+              target - the "place here" wireframe dragged onto the canvas and
+              the popup handing the canvas back.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="06-presenter-view.mp4"
+          ></video>
+          <figcaption>
+            <strong>presenter view</strong
+            ><span
+              >The teacher writes on the canvas and opens "Presenter view" from
+              the main menu; the presenter view opens in its own window, waits
+              for the editor, then shows the same canvas the teacher is
+              teaching, and goes fullscreen with F.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="07-live-editor.mp4"
+          ></video>
+          <figcaption>
+            <strong>live editor</strong
+            ><span
+              >The panel's editor view is a real editor: text is selected with
+              the mouse inside it, "Copy as code block" puts it on the
+              clipboard, and it lands on the canvas as one code card; the
+              language is changed to python from the panel's own bar, and the
+              editor zooms to 150% inside the panel while the canvas zoom stays
+              at 67%.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="08-what-is-mirrored.mp4"
+          ></video>
+          <figcaption>
+            <strong>what is mirrored</strong
+            ><span
+              >The whole editor's window is mirrored by default; "Change what is
+              mirrored" opens the whole window with a crop on it, and the crop
+              the teacher draws is the only part the panel shows afterwards; the
+              region is changed again, "Follow the cursor" is turned on and the
+              region follows the pointer, and it is turned off again.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="09-run-code.mp4"
+          ></video>
+          <figcaption>
+            <strong>run code</strong
+            ><span
+              >The panel's runtime picker, offering only the runtimes that are
+              really on this machine (javascript, python, java, c, cpp - and not
+              rust, which is not installed), and the panel's Run executing the
+              draft in the teacher's workspace: "Run started: node
+              excalidraw-bridge-snippet-code-run-1.js", the ten lines of output,
+              and "Run finished with code 0."</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="10-pages-frame-number-size.mp4"
+          ></video>
+          <figcaption>
+            <strong>pages frame number size</strong
+            ><span
+              >The page's frame toggled on and drawn on the canvas, the page's
+              number appearing at the foot of the page, the A4 portrait preset
+              changing the page's shape, and "Export pages" producing the PDF at
+              that shape.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="11-virtual-display.mp4"
+          ></video>
+          <figcaption>
+            <strong>virtual display</strong
+            ><span
+              >The extension's presenter panel reports the virtual display it
+              found ("a window goes on the virtual display Generic PnP Monitor
+              (1920x1080 at 1920,0)"), and the two controls on it: "Move this
+              editor to the virtual display" - which is the teacher's choice,
+              nothing moves until it is pressed - and "Bring this editor back to
+              this screen"; when it is pressed the editor's window really goes
+              to the virtual display, filmed there, with the extension's own
+              report of what it did.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="12-youtube-captions.mp4"
+          ></video>
+          <figcaption>
+            <strong>youtube captions</strong
+            ><span
+              >A YouTube panel playing YouTube's own player, and the captions'
+              tier: this machine has no YouTube Data API key, so the tier that
+              answers is the third one, and the panel says so - "no captions:
+              the YouTube API key is not set and the public timedtext endpoint
+              gave nothing back. Set excalidraw-bridge.youtubeApiKey to read
+              them".</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="13-the-code-card.mp4"
+          ></video>
+          <figcaption>
+            <strong>the code card</strong
+            ><span
+              >The markdown viewer's "Copy code" on a fenced block, pasted onto
+              the canvas as one dark code card of monospace, highlighted text -
+              not a row of plain bordered text boxes.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="14-the-file-sidebar.mp4"
+          ></video>
+          <figcaption>
+            <strong>the file sidebar</strong
+            ><span
+              >The Files sidebar: the listing grouped by type, a markdown file
+              picked and read in the viewer, a file that cannot be used listed
+              with the reason why ("archive.zip - unknown file type"), and a
+              video row dragged onto the canvas with a loading wireframe
+              standing where the player will land.</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="clip">
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            src="15-the-live-view.mp4"
+          ></video>
+          <figcaption>
+            <strong>the live view</strong
+            ><span
+              >The editor's own window mirrored into the panel as a live MJPEG
+              stream: the picture follows the editor as the teacher moves
+              through the file, and the panel's own state follows the file that
+              is open.</span
+            >
+          </figcaption>
+        </figure>
+      </div>
+      <footer>
+        A hobby fork of
+        <a href="https://github.com/excalidraw/excalidraw">Excalidraw</a>. Not
+        maintained, and not kept in sync with upstream.
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,1004 @@
+import { basename, join } from "node:path";
+
+import * as vscode from "vscode";
+
+import {
+  BRIDGE_TASK_TYPE,
+  DEFAULT_BRIDGE_HOST,
+  type BridgeMessage,
+} from "../../bridge/src/protocol";
+
+import { createBridgeServer, type BridgeConnection } from "./bridge";
+import { createCaptureStatePublisher } from "./captureState";
+import { applyMirrorMessage, createMirrorStore } from "./mirrorRegion";
+import {
+  resolveCaptureFps,
+  resolvePort,
+  resolvePythonPath,
+  resolveToken,
+} from "./config";
+import {
+  documentForTabUri,
+  editorContentMessage,
+  editorToMirror,
+  type EditorDocumentLike,
+  type EditorLike,
+} from "./editorState";
+import { engineSearchPaths, resolveOcrEngine } from "./ocrEngine";
+import {
+  engineForRequest,
+  ocrSidecar,
+  readWithEngine,
+  resolveEngineState,
+  stopOcrSidecar,
+} from "./ocrEngines";
+import { portConflictMessage } from "./portConflict";
+import { createRunPseudoterminal } from "./pseudoterminal";
+import { createRunner, type Runner } from "./runner";
+import { createSnippetService, type SnippetService } from "./snippet";
+import { createBridgeTask } from "./taskPresentation";
+import { captionMessage, resolveYouTubeCaptions } from "./youtubeCaptions";
+import {
+  createInputPanel,
+  UNKNOWN_PANEL_STATE,
+  type PanelState,
+} from "./inputPanel";
+import {
+  createVirtualDisplay,
+  PRESENTER_WINDOW_TITLE,
+  VIRTUAL_DISPLAY_SCRIPT_RELATIVE_PATH,
+} from "./virtualDisplay";
+import {
+  CAPTURE_SCRIPT_RELATIVE_PATH,
+  createWindowCaptureSupervisor,
+  editorProcessName,
+  type WindowCaptureSupervisor,
+} from "./windowCapture";
+import { createCoalescedPublisher } from "./publish";
+
+import type { OcrEngineState, OcrRequest } from "../../bridge/src/ocr";
+import type { CaptureStateMessage } from "./captureState";
+import type { CoalescedPublisher } from "./publish";
+
+/**
+ * The extension entry point.
+ *
+ * It does three things:
+ *
+ *  1. reads the active editor and publishes its text to the bridge;
+ *  2. serves the loopback websocket the Excalidraw page connects to;
+ *  3. contributes the task type `excalidraw-bridge.run`, whose pseudoterminal
+ *     runs the program and tees its output to the bridge.
+ *
+ * It uses NO VS Code-only API, so it installs and runs in VSCodium as well.
+ */
+
+const CONFIG_SECTION = "excalidraw-bridge";
+
+/** The extension's own version, from its manifest. */
+let extensionVersion = "0.0.0";
+
+let bridgeServer: ReturnType<typeof createBridgeServer> | null = null;
+
+let captureSupervisor: WindowCaptureSupervisor | null = null;
+
+/**
+ * The editor's text, published **at most every 100 ms**.
+ *
+ * It is a module-level variable so that `deactivate` can flush the last
+ * state: the trailing publish is the one that carries the final text, and it
+ * must not be lost when the extension goes away.
+ */
+let textPublisher: CoalescedPublisher | null = null;
+
+export function activate(context: vscode.ExtensionContext): void {
+  extensionVersion = context.extension?.packageJSON?.version ?? "0.0.0";
+
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const configuration = vscode.workspace.getConfiguration(CONFIG_SECTION);
+  const port = resolvePort(workspaceRoot, configuration.get<number>("port"));
+  const { token, generated } = resolveToken(configuration.get<string>("token"));
+  /**
+   * The teacher's **own** YouTube API key.
+   *
+   * It is a secret, and it is the teacher's: the setting is never written to
+   * disk by the extension and never travels over the bridge - only the
+   * captions the key unlocked do. Without it the captions fall back to the
+   * public endpoint, and the panel says which tier answered.
+   */
+  const youtubeApiKey = configuration.get<string>("youtubeApiKey");
+  // The folder's name, as it appears in the window's title. It is empty when the
+  // teacher has no folder open - and the **bridge** is what turns that into a
+  // name the panel can show ("no folder open"). The capture keeps the
+  // raw name, because that is what the window's title really carries.
+  const workspace = workspaceRoot ? basename(workspaceRoot) : "";
+
+  let runner: Runner | null = null;
+
+  /** The runnable snippet service. */
+  let snippetService: SnippetService | null = null;
+
+  /**
+   * Which editor this is: "Visual Studio Code", "VSCodium",...
+   *
+   * The bridge's port is FIXED, so with two editors running only one
+   * of them holds it - and the app reaches that one, not necessarily the one
+   * the teacher has their file open in. The name is what makes the mismatch
+   * visible.
+   */
+  const appName = vscode.env.appName || "the editor";
+
+  /**
+   * The editor the panel is mirroring.
+   *
+   * It is **remembered**: the focus moves to the terminal or the explorer
+   * all the time, and the file the teacher is teaching from is still open
+   * then. Publishing the empty state in that moment erases the mirror - the
+   * code vanishes for a reason nobody can see.
+   */
+  let mirroredEditor: EditorLike | undefined;
+
+  /**
+   * The **active tab's** document, when there is no active editor.
+   *
+   * The teacher teaches from the editor and then switches to the BROWSER to
+   * show the canvas - and the window loses the focus, so there is no active
+   * editor any more. The tab is still the file they are teaching, and the
+   * tab is always known. Without this, the panel goes blank exactly when the
+   * teacher needs it.
+   *
+   * The tab API does NOT carry the document - `TabInputText` has only a
+   * `uri` (verified against the installed API declaration, VSCodium
+   * 1.135.06055) - so the document is resolved from the open documents by
+   * that uri. The tab can also be a diff, a terminal, a notebook or a
+   * webview, in which case it names no text document at all.
+   */
+  const activeTabDocument = (): EditorDocumentLike | undefined => {
+    const tab = vscode.window.tabGroups.activeTabGroup?.activeTab;
+    const input = tab?.input as { uri?: { toString(): string } } | undefined;
+
+    return documentForTabUri(
+      input?.uri?.toString(),
+      vscode.workspace.textDocuments,
+    );
+  };
+
+  const currentEditor = (): EditorLike | undefined => {
+    mirroredEditor = editorToMirror(
+      mirroredEditor,
+      vscode.window.activeTextEditor as EditorLike | undefined,
+      (editor) =>
+        vscode.workspace.textDocuments.some(
+          (document) => document === editor.document,
+        ),
+      activeTabDocument(),
+    );
+
+    return mirroredEditor;
+  };
+
+  /**
+   * The live view of the editor's **own window**.
+   *
+   * The picture does **not** ride the websocket: it is served as an MJPEG
+   * stream from the extension's own HTTP server, and the panel plays that
+   * stream in a plain `<img>`. So a frame never enters the app's data - it
+   * cannot reach the panel's payload either, and the app does no per-frame
+   * work at all.
+   *
+   * What rides the websocket is the capture's **STATE**, and it is published
+   * when the state changes: the panel re-renders when the state changes, not
+   * when a picture arrives.
+   *
+   * The capture is **one** helper for the whole session: a helper per frame
+   * would spawn a process every frame for the whole lesson, and each of them
+   * would capture a different moment.
+   */
+  let lastCaptureMessage: CaptureStateMessage | null = null;
+
+  /**
+   * The capture's state, published only when it **changes**.
+   */
+  const captureState = createCaptureStatePublisher((message) => {
+    lastCaptureMessage = message;
+    bridgeServer?.broadcast(message);
+  });
+
+  /**
+   * What is **mirrored** of the editor's window.
+   *
+   * The teacher's own choice: the whole window until they choose a region,
+   * and a region they can change as often as they like. The editor's window
+   * is still found **by rule** - a region never changes how it
+   * is found, it only says which part of it is mirrored.
+   */
+  const mirror = createMirrorStore();
+
+  const startWindowCapture = () => {
+    if (process.platform !== "win32") {
+      // the capture is a Windows program: `PrintWindow` is a Windows API
+      captureState.unavailable("the live view of the editor needs Windows");
+      return;
+    }
+
+    // The helper ships INSIDE the extension, so there is nothing to install
+    // and no dependency to add - PowerShell is on every Windows machine.
+    const scriptPath = join(
+      context.extensionPath,
+      CAPTURE_SCRIPT_RELATIVE_PATH,
+    );
+
+    captureSupervisor = createWindowCaptureSupervisor({
+      scriptPath,
+      // the OS process name is not the editor's name: VS Code runs as `Code`
+      processName: editorProcessName(appName),
+      // the window's title holds the workspace folder's name
+      titleLike: workspace,
+      fps: resolveCaptureFps(configuration.get<number>("captureFps")),
+      onFrame: (frame) => {
+        // The picture goes to the MJPEG STREAM and to nothing else.
+        bridgeServer?.publishFrame({
+          bytes: frame.bytes,
+          seq: frame.seq,
+          // the size rides along: a snapshot has to say how big it is
+          width: frame.width,
+          height: frame.height,
+        });
+
+        // and the state says the capture is running - once, when it changes.
+        // The picture's own size rides with it: the crop is measured in
+        // fractions of the picture, so the panel needs the size.
+        captureState.live(frame.seq, {
+          width: frame.width,
+          height: frame.height,
+        });
+      },
+      onUnavailable: (reason) => {
+        // A failure is a **message**, not a silence: the panel has to be able
+        // to say why there is no live view, and fall back to the text.
+        // "The editor's window is not visible" is such a message, and it is a
+        // different fact from "there is no window".
+        captureState.unavailable(reason);
+      },
+    });
+
+    captureSupervisor.ensureRunning();
+  };
+
+  /**
+   * The editor's text, published **at most every 100 ms**.
+   *
+   * Every keystroke used to make the app rewrite the whole scene, because
+   * the message carries the whole file. The trailing publish always carries
+   * the LAST state, so the final text is never lost.
+   */
+  textPublisher = createCoalescedPublisher({
+    publish: () => {
+      bridgeServer?.broadcast(editorContentMessage(currentEditor()));
+    },
+  });
+
+  const publishEditorContent = () => {
+    // The publish is coalesced: at most one every 100 ms, and the last state
+    // is always published.
+    textPublisher?.request();
+  };
+
+  /**
+   * The engine's **state**, published to the panel.
+   *
+   * The panel has to be able to say which engine is in use, and - when the
+   * engine is not there - **why**, and what to install. It is a state,
+   * not a silence.
+   */
+  let ocrState: OcrEngineState | null = null;
+
+  const sendEditorContentTo = (connection: BridgeConnection) => {
+    // A client that connects into a session whose helper had died gets a
+    // capture again: the live view recovers BY ITSELF, without anybody
+    // having to refocus the editor.
+    captureSupervisor?.ensureRunning();
+
+    connection.send(editorContentMessage(currentEditor()));
+
+    // The capture state, so that a panel which connects **later** learns why
+    // there is no live view: the reason would otherwise have been broadcast
+    // into a room with nobody in it.
+    if (lastCaptureMessage) {
+      connection.send(lastCaptureMessage);
+    }
+
+    // The same for the OCR engine's state: a panel which connects later has to
+    // learn which engine is in use, and why there is none.
+    if (ocrState) {
+      connection.send({
+        v: 1,
+        type: "ocr:state",
+        state: ocrState.state,
+        ...(ocrState.engine ? { engine: ocrState.engine } : {}),
+        ...(ocrState.reason ? { reason: ocrState.reason } : {}),
+      });
+    }
+
+    // The runtimes that are actually on this machine. A panel which
+    // connects later has to learn them too, or its language picker would offer
+    // nothing.
+    const runtimes = snippetService?.runtimes() ?? [];
+
+    if (runtimes.length) {
+      connection.send({ v: 1, type: "run:runtimes", languages: runtimes });
+    }
+  };
+
+  const runCommand = async (request: {
+    command: string;
+    args: string[];
+    cwd?: string;
+  }) => {
+    if (!runner) {
+      return;
+    }
+    // The task carries the presentation options that keep the EDITOR's focus:
+    // the terminal is revealed, and it never asks for the focus - whatever
+    // `terminal.integrated.defaultLocation` says.
+    const task = createBridgeTask<vscode.Task>(
+      {
+        TaskRevealKind: vscode.TaskRevealKind,
+        TaskPanelKind: vscode.TaskPanelKind,
+        createTask: (definition, name) =>
+          new vscode.Task(
+            definition,
+            vscode.TaskScope.Workspace,
+            name,
+            BRIDGE_TASK_TYPE,
+            new vscode.CustomExecution(async () =>
+              createRunPseudoterminal({ runner: runner as Runner, request }),
+            ),
+          ),
+      },
+      request,
+    );
+    await vscode.tasks.executeTask(task);
+  };
+
+  /**
+   * The **OCR service** of the bridge.
+   *
+   * The engine is **chosen** (`excalidraw-bridge.ocrEngine`):
+   * `tesseract` runs here, in the extension's Node process, and `indra` and
+   * `paddle` run in the Python sidecar - never in the browser.
+   *
+   * A failure is a **message**: the app has to be able to say why the text did
+   * not arrive, so the answer is an `ocr:error` and never a silence.
+   */
+  const configuredEngine = resolveOcrEngine(
+    configuration.get<string>("ocrEngine"),
+  );
+  const pythonPath = resolvePythonPath(configuration.get<string>("pythonPath"));
+
+  /**
+   * Whether the teacher has already been told about the fall-back.
+   *
+   * The sidecar falls back to the slow path when the fast one crashes
+   *, and the slow path is MUCH slower. The teacher is told **once**:
+   * the fact is in every answer, but a message per read would be noise.
+   */
+  let toldAboutTheFallback = false;
+
+  /**
+   * The extension's own message about the fall-back.
+   *
+   * It says why the read was slow, in the extension's own words - not the
+   * engine's, and not the library's.
+   */
+  const tellAboutTheFallback = (
+    engine: string,
+    durationMs: number | undefined,
+  ) => {
+    if (toldAboutTheFallback) {
+      return;
+    }
+
+    toldAboutTheFallback = true;
+
+    const seconds =
+      durationMs === undefined
+        ? ""
+        : ` (this read took ${(durationMs / 1000).toFixed(1)} s)`;
+
+    void vscode.window.showWarningMessage(
+      `Excalidraw Bridge: ${engine} ran WITHOUT oneDNN, so it is on its slow path${seconds}. ` +
+        "oneDNN is broken on this machine, so this is the only configuration that works here.",
+    );
+  };
+
+  /**
+   * The engine's **state**, published to the panel.
+   *
+   * The panel has to be able to say which engine is in use, and - when the
+   * engine is not there - **why**, and what to install. It is a state,
+   * not a silence.
+   */
+  const publishOcrState = (state: OcrEngineState) => {
+    ocrState = state;
+    bridgeServer?.broadcast({
+      v: 1,
+      type: "ocr:state",
+      state: state.state,
+      ...(state.engine ? { engine: state.engine } : {}),
+      ...(state.reason ? { reason: state.reason } : {}),
+    });
+  };
+
+  /**
+   * The engine is resolved **once**, at activation: the panel is told which
+   * engine is in use without waiting for a read.
+   */
+  const resolveTheEngine = async () => {
+    const state = await resolveEngineState({
+      engine: configuredEngine,
+      sidecar: ocrSidecar({
+        pythonPath,
+        extensionDir: context.extensionPath,
+      }),
+      searchPaths: engineSearchPaths(workspaceRoot),
+    });
+
+    publishOcrState(state);
+  };
+
+  const readText = async (request: OcrRequest) => {
+    try {
+      // the request may name an engine; when it does not, the setting decides
+      const engine = engineForRequest(request.engine, configuredEngine);
+
+      const result = await readWithEngine({
+        engine,
+        request: {
+          id: request.id,
+          imageBase64: request.imageBase64,
+          ...(request.region ? { region: request.region } : {}),
+          ...(request.language ? { language: request.language } : {}),
+        },
+        sidecar: ocrSidecar({
+          pythonPath,
+          extensionDir: context.extensionPath,
+        }),
+        searchPaths: engineSearchPaths(workspaceRoot),
+      });
+
+      bridgeServer?.broadcast({
+        v: 1,
+        type: "ocr:result",
+        id: request.id,
+        text: result.text,
+        lines: result.lines,
+        ...(result.confidence === undefined
+          ? {}
+          : { confidence: result.confidence }),
+        // which engine ran, and how long it took
+        ...(result.engine ? { engine: result.engine } : {}),
+        ...(result.durationMs === undefined
+          ? {}
+          : { durationMs: result.durationMs }),
+        // how the engine's model was built: the truth about a slow read
+        ...(result.model ? { model: result.model } : {}),
+      });
+
+      // the engine fell back to the slow path: the teacher is told why the
+      // read took so long, in the extension's own words
+      if (result.model?.mkldnn === false) {
+        tellAboutTheFallback(result.engine ?? engine, result.durationMs);
+      }
+    } catch (error) {
+      const message = (error as Error).message;
+
+      bridgeServer?.broadcast({
+        v: 1,
+        type: "ocr:error",
+        id: request.id,
+        message,
+      });
+
+      vscode.window.showErrorMessage(`Excalidraw Bridge: ${message}`);
+    }
+  };
+
+  /**
+   * The captions of a YouTube video.
+   *
+   * A browser cannot read them, so the **bridge** does: the tiers are tried in
+   * order, and the tier that answered travels with the answer - so the panel
+   * can say *"these captions came from the public endpoint, which may be
+   * incomplete"* or *"no captions: the API key is not set"*.
+   */
+  const readCaptions = async (request: { id: string; videoId: string }) => {
+    const answer = await resolveYouTubeCaptions({
+      videoId: request.videoId,
+      apiKey: youtubeApiKey,
+      fetchImpl: fetch,
+    });
+
+    // the message carries the tier that answered
+    bridgeServer?.broadcast(
+      captionMessage({
+        id: request.id,
+        videoId: request.videoId,
+        answer,
+      }),
+    );
+  };
+
+  const handleBridgeMessage = (message: BridgeMessage) => {
+    switch (message.type) {
+      case "run:start":
+        void runCommand(message);
+        break;
+      case "run:stop":
+        runner?.stop(message.runId);
+        break;
+      case "code:run":
+        // The panel's Run control: the teacher's own text, run in the
+        // teacher's workspace.
+        void snippetService?.run(message);
+        break;
+      case "ping":
+        bridgeServer?.broadcast({ v: 1, type: "pong" });
+        break;
+      case "editor:mirror":
+        // What is mirrored is a **choice**: the teacher changed it, so
+        // the capture descriptor says so again, and a panel that connects
+        // later learns the choice.
+        applyMirrorMessage(
+          mirror,
+          (state) => captureState.setMirror(state),
+          message,
+        );
+        break;
+      case "ocr:request":
+        void readText(message);
+        break;
+      case "captions:request":
+        // The captions of a YouTube video, in the tiers.
+        void readCaptions(message);
+        break;
+      default:
+        break;
+    }
+  };
+
+  /**
+   * The **virtual display** and the **input panel**.
+   *
+   * The screen the students see and the controls the teacher uses are
+   * different surfaces: the presenter's window goes on a virtual display when
+   * the machine has one, and the teacher drives it from a small page on their
+   * **real** screen.
+   *
+   * The virtual display is a **Windows** feature - it is the indirect display
+   * driver - and it needs **no driver at all**: on a machine without one the
+   * feature says so plainly and the presenter's window opens on the desktop.
+   */
+  const virtualDisplay = createVirtualDisplay({
+    scriptPath: join(
+      context.extensionPath,
+      VIRTUAL_DISPLAY_SCRIPT_RELATIVE_PATH,
+    ),
+  });
+
+  /** The panel's capability. It lives for the session. */
+  let panelCapability: string | null = null;
+
+  /** What the panel shows about the presenter's screen. */
+  let panelState: PanelState = UNKNOWN_PANEL_STATE;
+
+  const refreshPanelState = async (): Promise<PanelState> => {
+    if (process.platform !== "win32") {
+      panelState = {
+        display: null,
+        virtual: false,
+        reason:
+          "the virtual display is a Windows feature - the presenter's window opens on the desktop",
+      };
+      return panelState;
+    }
+
+    try {
+      const chosen = await virtualDisplay.target();
+
+      panelState = {
+        display: chosen.display
+          ? {
+              device: chosen.display.device,
+              name: chosen.display.name,
+              width: chosen.display.width,
+              height: chosen.display.height,
+              x: chosen.display.x,
+              y: chosen.display.y,
+            }
+          : null,
+        virtual: chosen.virtual,
+        reason: chosen.reason,
+        // The click, when there is one: a virtual display that is installed
+        // but DETACHED is one click away, and the panel says which
+        // click it is.
+        remedy: chosen.remedy,
+      };
+    } catch (error) {
+      panelState = {
+        display: null,
+        virtual: false,
+        reason: `the displays could not be read: ${(error as Error).message}`,
+      };
+    }
+
+    return panelState;
+  };
+
+  /**
+   * The **editor's own window** goes on the virtual display.
+   *
+   * This is an **option the teacher chooses**: nothing moves until
+   * the teacher presses the panel's button or runs this command. Their
+   * window is theirs, and it stays exactly where they put it otherwise.
+   *
+   * The window is found **BY RULE** - the workspace folder's name is in its
+   * title, the same rule the capture uses - and the placement
+   * never takes the focus, so the teacher keeps typing while their window
+   * moves.
+   */
+  const placeEditor = async () => {
+    if (process.platform !== "win32") {
+      void vscode.window.showInformationMessage(
+        "Excalidraw Bridge: the virtual display is a Windows feature - your editor stays on the desktop.",
+      );
+      return;
+    }
+
+    if (!workspace) {
+      void vscode.window.showInformationMessage(
+        "Excalidraw Bridge: open a folder first - the editor's window is found by the folder's name.",
+      );
+      return;
+    }
+
+    try {
+      const result = await virtualDisplay.placeWindow({
+        titleLike: workspace,
+        // the OS process name is not the editor's name: VS Code runs as `Code`
+        processName: editorProcessName(appName),
+        subject: "your editor's window",
+      });
+
+      await refreshPanelState();
+
+      void vscode.window.showInformationMessage(
+        `Excalidraw Bridge: ${result.reason}.`,
+      );
+    } catch (error) {
+      void vscode.window.showErrorMessage(
+        `Excalidraw Bridge: ${(error as Error).message}`,
+      );
+    }
+  };
+
+  /**
+   * The **editor's own window** comes BACK.
+   *
+   * The feature is not a one-way door: the window goes back to the display
+   * the teacher is working on, in the size it had before it moved, and
+   * maximised again if it was maximised before it moved.
+   */
+  const bringBackEditor = async () => {
+    if (process.platform !== "win32") {
+      void vscode.window.showInformationMessage(
+        "Excalidraw Bridge: the virtual display is a Windows feature - your editor is already on this screen.",
+      );
+      return;
+    }
+
+    if (!workspace) {
+      void vscode.window.showInformationMessage(
+        "Excalidraw Bridge: open a folder first - the editor's window is found by the folder's name.",
+      );
+      return;
+    }
+
+    try {
+      const result = await virtualDisplay.bringBack({
+        titleLike: workspace,
+        processName: editorProcessName(appName),
+        subject: "your editor's window",
+      });
+
+      await refreshPanelState();
+
+      void vscode.window.showInformationMessage(
+        `Excalidraw Bridge: ${result.reason}.`,
+      );
+    } catch (error) {
+      void vscode.window.showErrorMessage(
+        `Excalidraw Bridge: ${(error as Error).message}`,
+      );
+    }
+  };
+
+  const inputPanel = createInputPanel({
+    port: () => bridgeServer?.port ?? port,
+    // The panel's controls go onto the **bridge**: the presenter is driven the
+    // one way there is, and the panel never sees the session token.
+    onCommand: (command) => {
+      bridgeServer?.broadcast({ v: 1, type: "present:command", command });
+    },
+    // The panel's own **actions** stay on the teacher's machine: the editor's
+    // window moving onto the virtual display - and coming back - is the
+    // extension's own business and never goes on the bridge.
+    // Nothing moves unless the teacher pressed the button.
+    onAction: (action) => {
+      if (action === "move-editor-window") {
+        void placeEditor();
+      }
+
+      if (action === "bring-back-editor-window") {
+        void bringBackEditor();
+      }
+    },
+    state: () => panelState,
+  });
+
+  /**
+   * The **input panel**: the presenter's controls, on the teacher's own
+   * screen.
+   */
+  const openInputPanel = async () => {
+    if (!panelCapability) {
+      panelCapability = inputPanel.createCapability();
+    }
+
+    await refreshPanelState();
+
+    const url = inputPanel.urlFor(panelCapability);
+
+    await vscode.env.openExternal(vscode.Uri.parse(url));
+
+    void vscode.window.showInformationMessage(
+      `Excalidraw Bridge: the presenter's input panel is open. ${panelState.reason}.`,
+    );
+  };
+
+  /**
+   * The presenter's window goes on the **virtual display**.
+   *
+   * With no virtual display the window is left where it is - on the desktop -
+   * and the teacher is told that in plain words.
+   */
+  const placePresenter = async () => {
+    if (process.platform !== "win32") {
+      void vscode.window.showInformationMessage(
+        "Excalidraw Bridge: the virtual display is a Windows feature - the presenter's window opens on the desktop.",
+      );
+      return;
+    }
+
+    try {
+      const result = await virtualDisplay.placePresenter();
+      await refreshPanelState();
+
+      void vscode.window.showInformationMessage(
+        `Excalidraw Bridge: ${result.reason}.`,
+      );
+    } catch (error) {
+      void vscode.window.showErrorMessage(
+        `Excalidraw Bridge: ${(error as Error).message}`,
+      );
+    }
+  };
+
+  /**
+   * The presenter's window comes BACK.
+   *
+   * The same round trip as the editor's window: it goes back to the display
+   * the teacher is working on, maximised as it was if it was maximised.
+   */
+  const bringBackPresenter = async () => {
+    if (process.platform !== "win32") {
+      void vscode.window.showInformationMessage(
+        "Excalidraw Bridge: the virtual display is a Windows feature - the presenter's window is already on the desktop.",
+      );
+      return;
+    }
+
+    try {
+      const result = await virtualDisplay.bringBack({
+        titleLike: PRESENTER_WINDOW_TITLE,
+        subject: "the presenter's window",
+        hint: "open the presenter view first",
+      });
+
+      await refreshPanelState();
+
+      void vscode.window.showInformationMessage(
+        `Excalidraw Bridge: ${result.reason}.`,
+      );
+    } catch (error) {
+      void vscode.window.showErrorMessage(
+        `Excalidraw Bridge: ${(error as Error).message}`,
+      );
+    }
+  };
+
+  bridgeServer = createBridgeServer({
+    port,
+    host: DEFAULT_BRIDGE_HOST,
+    token,
+    workspace,
+    version: extensionVersion,
+    appName,
+    onMessage: handleBridgeMessage,
+    onConnect: sendEditorContentTo,
+    inputPanel,
+    logger: (message) => console.info("[excalidraw-bridge]", message),
+  });
+
+  runner = createRunner({
+    bridge: {
+      broadcast: (message) => bridgeServer?.broadcast(message),
+    },
+    defaultCwd: () => workspaceRoot,
+  });
+
+  // The **runnable snippet**: the teacher's own text, run in the teacher's
+  // workspace. The extension is the only one of the three that can
+  // run anything, and it is the only one that knows what is installed here.
+  snippetService = createSnippetService({
+    bridge: {
+      broadcast: (message) => bridgeServer?.broadcast(message),
+    },
+    workspaceRoot,
+  });
+
+  // The runtimes that are **actually** on this machine. The panel's language
+  // picker offers only these, so it never offers a language that cannot run
+  // here.
+  void snippetService.detect().then((languages) => {
+    bridgeServer?.broadcast({ v: 1, type: "run:runtimes", languages });
+  });
+
+  void bridgeServer.listen().catch((error: unknown) => {
+    // The port is FIXED, so with two editors running only one of them
+    // holds it - and the app reaches that one, not necessarily the one the
+    // teacher has their file open in. Losing that race silently is what made
+    // this take an hour to see, so the message says what to do.
+    vscode.window.showErrorMessage(portConflictMessage(port, error));
+  });
+
+  // The live view of the editor's own window. It is started once, and
+  // it is stopped when the extension goes away. A helper that DIES is started
+  // again: one dead helper must not be dead for the rest of the
+  // session.
+  startWindowCapture();
+
+  // The OCR engine is resolved ONCE, here: the panel is told which engine is
+  // in use, and - when it is not there - why, and what to install.
+  void resolveTheEngine();
+
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor(publishEditorContent),
+    // NOT on every selection change: a cursor move fires it, and the panel
+    // would then write the whole scene again for every move of the mouse.
+    // The panel mirrors the TEXT, not the caret, so a text change and a
+    // change of the active file are the only two things it needs.
+    vscode.workspace.onDidChangeTextDocument(publishEditorContent),
+  );
+
+  // The task type. The teacher's own tasks.json can use it, and so can the
+  // "Run" button in the panel.
+  const provider: vscode.TaskProvider = {
+    provideTasks: () => [],
+    resolveTask: (task) => {
+      const definition = task.definition;
+      if (definition.type !== BRIDGE_TASK_TYPE) {
+        return undefined;
+      }
+      const command =
+        typeof definition.command === "string" ? definition.command : "";
+      if (!command) {
+        return undefined;
+      }
+      const args = Array.isArray(definition.args)
+        ? definition.args.filter(
+            (arg: unknown): arg is string => typeof arg === "string",
+          )
+        : [];
+      const cwd =
+        typeof definition.cwd === "string" ? definition.cwd : workspaceRoot;
+      return new vscode.Task(
+        definition,
+        vscode.TaskScope.Workspace,
+        `Excalidraw Bridge: ${command}`,
+        BRIDGE_TASK_TYPE,
+        new vscode.CustomExecution(async () =>
+          createRunPseudoterminal({
+            runner: runner as Runner,
+            request: { command, args, cwd },
+          }),
+        ),
+      );
+    },
+  };
+  context.subscriptions.push(
+    vscode.tasks.registerTaskProvider(BRIDGE_TASK_TYPE, provider),
+  );
+
+  const status = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    100,
+  );
+  status.text = "$(plug) Excalidraw Bridge";
+  status.tooltip = `ws://${DEFAULT_BRIDGE_HOST}:${port}`;
+  status.command = "excalidraw-bridge.showStatus";
+  status.show();
+  context.subscriptions.push(status);
+
+  const showStatus = async () => {
+    const choice = await vscode.window.showInformationMessage(
+      `Excalidraw Bridge is listening on ws://${DEFAULT_BRIDGE_HOST}:${port}.${
+        generated ? " This session's token is:" : " The token is:"
+      } ${token}`,
+      "Copy token",
+    );
+    if (choice === "Copy token") {
+      await vscode.env.clipboard.writeText(token);
+      vscode.window.showInformationMessage("Excalidraw Bridge: token copied.");
+    }
+  };
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("excalidraw-bridge.showStatus", showStatus),
+    vscode.commands.registerCommand("excalidraw-bridge.copyToken", async () => {
+      await vscode.env.clipboard.writeText(token);
+      vscode.window.showInformationMessage("Excalidraw Bridge: token copied.");
+    }),
+    // The virtual display and the input panel
+    vscode.commands.registerCommand(
+      "excalidraw-bridge.openInputPanel",
+      openInputPanel,
+    ),
+    vscode.commands.registerCommand(
+      "excalidraw-bridge.placePresenterOnVirtualDisplay",
+      placePresenter,
+    ),
+    // The editor's own window goes on the virtual display too - and
+    // it comes back. Both are the teacher's choice.
+    vscode.commands.registerCommand(
+      "excalidraw-bridge.placeEditorOnVirtualDisplay",
+      placeEditor,
+    ),
+    vscode.commands.registerCommand(
+      "excalidraw-bridge.bringBackEditorToPrimaryDisplay",
+      bringBackEditor,
+    ),
+    vscode.commands.registerCommand(
+      "excalidraw-bridge.bringBackPresenterToPrimaryDisplay",
+      bringBackPresenter,
+    ),
+  );
+}
+
+export function deactivate(): void {
+  // the capture is a process of its own: it goes away with the extension
+  captureSupervisor?.stop();
+  captureSupervisor = null;
+
+  // the OCR sidecar is a process of its own too
+  stopOcrSidecar();
+
+  // The trailing publish carries the LAST state, so it is flushed before the
+  // extension goes away - the final text is never lost.
+  textPublisher?.flush();
+  textPublisher?.stop();
+  textPublisher = null;
+
+  void bridgeServer?.close();
+  bridgeServer = null;
+}

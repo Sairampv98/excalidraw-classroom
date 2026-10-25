@@ -1,0 +1,33 @@
+node_modules/
+build/
+package-lock.json
+.vscode/
+firebase/
+dist/
+public/workbox
+packages/excalidraw/types
+examples/**/public
+dev-dist
+coverage
+htr-sandbox
+
+# Prettier is pointed at this file with --ignore-path, which REPLACES its
+# default .gitignore. So anything git ignores but this file does not is still
+# scanned. These are the ones that are large, generated, or not product source.
+.venv
+.worktrees
+node_modules
+
+# Reference material dropped into the repository root by hand. It is gitignored
+# and is not product source, so the formatter must not touch it.
+TINS-PLAYBOOK.md
+token-saving-harness-vscode.md
+
+# The TINS kit is a vendored third-party artifact: it is copied in verbatim
+# and its KIT-VERSION stamp is computed over the file list, so a formatter
+# must not touch it. Same for the kit's own task files, the session records
+# the kit generates, and the agent briefs.
+.tins/kit
+tasks
+sessions
+docs/tins-tasks
