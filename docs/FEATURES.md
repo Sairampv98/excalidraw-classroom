@@ -130,3 +130,24 @@ The editor's window is mirrored as a **live MJPEG stream** served by the extensi
 - The stream is authorised by a **per-connection capability** in the URL path. The session token never appears in a URL.
 - An unchanged picture is not published again, and the editor's text is published **at most every 100 ms**.
 - The capture is the window's **client area**, a JPEG, scaled down - and it is the **whole window**, unless you choose a region.
+
+---
+
+## Setting it up, and checking that it worked
+
+The features above are the point of this project. Getting them onto a machine is a separate job, and it is covered by its own documents:
+
+| document | what it covers |
+| --- | --- |
+| [`INSTALL.md`](docs/INSTALL.md) | the setup, the container, the extension, the token, and what a machine on ARM64 must change |
+| [`OFFLINE.md`](docs/OFFLINE.md) | the setup that needs **no internet at all** - one file that carries everything it needs |
+| [`VERIFY.md`](docs/VERIFY.md) | **how to confirm it works**: one entry per feature, with what to do, what you should see and what a deviation looks like |
+| [`REPORT.md`](docs/REPORT.md) | how to report a deviation, and how not to leak the bridge token while doing it |
+
+And one command that checks the machine itself:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\verify-install.ps1
+```
+
+It only **reads** the machine. It prints one row per check, and the three verdicts mean different things: `PASS` (it is there and it is right), `MISSING` (it is not installed - often fine) and `FAIL` (it is there but it is **wrong** - the one that needs attention).

@@ -92,6 +92,55 @@ If you would rather not install anything at all, the [Docker](#running-it-in-a-c
 
 ---
 
+## Setting it up with no internet
+
+Some rooms have no internet, or the teacher would rather not trust it. The **offline setup** is one file that carries everything it needs inside itself - the app, the extension, Node.js, the editors, Python, Java and the virtual display driver.
+
+Download `OfflineSetup.exe` from the [releases page](https://github.com/Sairampv98/excalidraw-classroom/releases) and double-click it. It:
+
+- unpacks what it carries and **checks every file against its hash** - a file that does not match is refused, never downloaded;
+- **serves the app straight away** - the app is a static bundle, so **nothing has to be installed for it to run**;
+- then asks, **one thing at a time**, whether to install the rest from its own payload: Node.js, VS Code or VSCodium, Python (only for the _paddle_ OCR engine), Java (only to build the app yourself) and the virtual display driver (which needs **administrator rights** and a **reboot** afterwards).
+
+`-DryRun` reports and installs nothing. `-Yes` accepts every question. A file that is missing is **reported**, never fetched.
+
+More in [`docs/OFFLINE.md`](docs/OFFLINE.md).
+
+---
+
+## Checking that the install is sound
+
+Two questions have two answers.
+
+### "Did it install?"
+
+One command, and it only **reads** the machine - it installs nothing, changes nothing and removes nothing:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\verify-install.ps1
+```
+
+It prints one row per check - the check, the expected value, the actual value and the verdict:
+
+| verdict       | what it means                                              |
+| ------------- | ---------------------------------------------------------- |
+| `PASS`        | it is there and it is right                                |
+| `MISSING`     | it is not installed - often perfectly fine                 |
+| `FAIL`        | it is there but it is **wrong** - this one needs attention |
+| `NOT CHECKED` | the check needed an argument that was not given            |
+
+It ends with a block you can copy and send back, and it exits `1` only when something FAILED.
+
+### "Is it behaving the way it should?"
+
+[`docs/VERIFY.md`](docs/VERIFY.md) has one entry per feature: **what to do**, **what you should see**, **what a deviation looks like**, and **the short clip that shows it**. Work down it on the machine you are testing.
+
+### "Something deviates"
+
+[`docs/REPORT.md`](docs/REPORT.md) is a form to fill in and send. Please **never include the bridge token** - it is a secret, and the form says so.
+
+---
+
 ## Running it in a container
 
 If a student would rather install nothing at all, the app runs in a container:
