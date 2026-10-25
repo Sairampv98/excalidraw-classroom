@@ -53,7 +53,9 @@ The app is a normal Vite app: `excalidraw-app` is the application, `packages/exc
 
 ## Setting it up
 
-There is a **setup script**. It checks for everything the project needs, tells you what it found, and installs what is missing — so you do not have to work out for yourself that you need Node, or that Yarn comes from Corepack, or that the extension has to be installed from a `.vsix`.
+The full guide is **[`docs/INSTALL.md`](docs/INSTALL.md)** — the setup, the container, the extension, the token, and what a machine on ARM64 must change.
+
+The setup is the whole point of this project: a person with a laptop, an editor and a class to teach should not have to work out that they need Node, that Yarn comes from Corepack, and that the extension is installed from a `.vsix`.
 
 **Windows:**
 
