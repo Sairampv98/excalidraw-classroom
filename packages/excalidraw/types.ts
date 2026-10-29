@@ -1065,6 +1065,24 @@ export type PanelRunControls = {
   languages?: string[];
   /** the teacher pressed Run */
   onRun?: (panelId: string) => void;
+  /** Run works with no bridge: the host runs Python in the browser */
+  canRunInBrowser?: boolean;
+  /** the languages that run in the browser, so the picker can say so */
+  browserLanguages?: string[];
+  /** the teacher cleared the console */
+  onClear?: (panelId: string) => void;
+  /**
+   * The languages the picker lists, and where each stands: ready, to be
+   * downloaded, downloading (with how far) or not available yet.
+   */
+  languagePacks?: Array<{
+    id: string;
+    name: string;
+    state: "ready" | "download" | "downloading" | "unavailable";
+    progress?: number | null;
+  }>;
+  /** the teacher chose a language that is to be downloaded first */
+  onInstallPack?: (id: string) => void;
 };
 
 /**
