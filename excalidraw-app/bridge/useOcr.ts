@@ -229,7 +229,8 @@ export const ocrLadderMessage = ({
   const notes = skipped.map((skip) =>
     t("labels.ocrLadder.skipped", {
       engine: skip.engine,
-      reason: skip.reason,
+      // the sentence ends the reason with its own full stop
+      reason: skip.reason.replace(/[.\s]+$/, ""),
     }),
   );
 
