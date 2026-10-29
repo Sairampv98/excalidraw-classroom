@@ -362,7 +362,7 @@ describe("the crop-and-read action, and the engine ladder", () => {
     expect(result.current.cropFor("panel-1")).toEqual(CROP);
   });
 
-  it("the engine ladder runs indra with the bridge and paddle only as a last resort", async () => {
+  it("the engine ladder runs indra with the bridge, then tesseract, and no other", async () => {
     const { api } = scene();
 
     /** the engines the machine asked for, in the order it asked */
@@ -372,7 +372,7 @@ describe("the crop-and-read action, and the engine ladder", () => {
       async (request: Omit<OcrRequest, "id">): Promise<OcrResult> => {
         asked.push(request.engine ?? "");
 
-        if (request.engine !== "paddle") {
+        if (request.engine !== "tesseract") {
           throw new Error(`${request.engine} is not available`);
         }
 
@@ -380,8 +380,8 @@ describe("the crop-and-read action, and the engine ladder", () => {
           id: "ocr-1",
           text: "",
           lines: [],
-          engine: "paddle",
-          durationMs: 27822,
+          engine: "tesseract",
+          durationMs: 278,
         };
       },
     );
@@ -398,13 +398,13 @@ describe("the crop-and-read action, and the engine ladder", () => {
       });
     });
 
-    // the ladder: **indra** first with the bridge, then **tesseract**, and
-    // **paddle** only as the last resort
-    expect(asked).toEqual(["indra", "tesseract", "paddle"]);
+    // the ladder: **indra** first with the bridge, then **tesseract** - paddle
+    // is not on it any more
+    expect(asked).toEqual(["indra", "tesseract"]);
 
     // and the teacher is never asked to choose: the machine chose, and the
     // panel says what it chose
-    expect(result.current.message).toContain("paddle");
+    expect(result.current.message).toContain("tesseract");
   });
 
   it("the answer says which engine ran and why the one before it did not", async () => {

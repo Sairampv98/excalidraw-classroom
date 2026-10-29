@@ -143,9 +143,14 @@ describe("the paste that does not fit", () => {
 
     paste("hello\nworld");
 
+    // a paste that fits is one text box, with both lines in it
     await waitFor(() => {
-      expect(pastedText().length).toBe(2);
+      expect(pastedText().length).toBe(1);
     });
+
+    expect((pastedText()[0] as unknown as { text: string }).text).toBe(
+      "hello\nworld",
+    );
 
     // no offer: the paste fitted
     expect(
@@ -156,6 +161,31 @@ describe("the paste that does not fit", () => {
     for (const element of pastedText()) {
       expect(isInsideItsPage(element)).toBe(true);
     }
+  });
+
+  it("a paste of several lines that fits is one text box, as tall as its lines", async () => {
+    await setup();
+
+    paste("alpha\nbeta\ngamma");
+
+    await waitFor(() => {
+      expect(pastedText().length).toBe(1);
+    });
+
+    const box = pastedText()[0] as unknown as {
+      text: string;
+      height: number;
+      fontSize: number;
+    };
+
+    // all three lines are in the one box, which is as tall as three lines
+    expect(box.text.split("\n")).toEqual(["alpha", "beta", "gamma"]);
+    expect(box.height).toBeGreaterThan(box.fontSize * 3);
+
+    // a wrapping box, so that a side can be dragged and the text flows
+    expect(
+      (pastedText()[0] as unknown as { autoResize: boolean }).autoResize,
+    ).toBe(false);
   });
 
   it("a paste that does not fit raises the offer", async () => {
