@@ -49,6 +49,17 @@ The mirrored text is a **real editor**, not a read-only dump.
 
 **What it does not do:** the editor cannot edit the file. It is a mirror; the file in your editor is the truth.
 
+## A code editor of its own
+
+A panel that needs no VS Code: choose **Code editor (in the browser)** in the main menu.
+
+- **Python and JavaScript run in the browser.** Python is downloaded the first time it runs (a download of several megabytes from a public CDN) and kept by the browser; JavaScript runs in a worker. Nothing is installed.
+- The **Input** box under the console holds the lines a program reads with `input()`. When a program asks for more than was typed it says so, and says what to do.
+- A program that runs **too long** is stopped after 10 seconds, and the console says it may be an infinite loop. A program that prints too much is stopped at the output limit. A program that dies is reported as a crash. A browser can end a program that uses too much memory without a word - that case is reported, not prevented.
+- Each **Run starts on an empty output**.
+- The editor has a **dark** and a **light** theme that paint the whole panel. The console can be **docked below or beside** the editor, resized with a divider, zoomed on its own, and cleared.
+- A language the browser does not run is run by **VS Code** when the bridge is connected and the language is installed on that machine (Java, Go, C and others), and the picker says so. Without the bridge, those languages say what is missing. **Go, Java, C and C++ are not available in the browser yet.**
+
 ## What is mirrored
 
 The panel mirrors the **whole** editor window by default.
@@ -68,22 +79,24 @@ One action does the whole thing: **crop and read**.
 - The crop **really crops**: the handles change the picture that is placed.
 - Placing shows a **wireframe** where it will land, and you place it. When the picture is placed, the popup **hands the canvas back**.
 - The flows run in the order you asked for: **crop first**, then the choice, then the page (through the page selector ribbon), then the target. The flow that writes **text** asks where the **text** goes, not where the picture would go.
+- Reading a **PDF page or a picture** shows the whole page first: **drag over the area to read**, or read the whole page. Only that area is read.
+- The text that was read is **shown first** - with its indents, and open to correction - and goes to the page only when you choose: as a **code block**, as **text**, or **where it was** (one text for each line, at the place it had on the page).
+- A read says how far it is: a progress bar with a Stop button. A read that finds nothing says so.
 
 ### The engine ladder
 
-You never have to choose an engine. The machine chooses, and it says what it chose and why.
+You do not have to choose an engine: the machine chooses, and it says what it chose and why. Wherever a page is read - the PDF's **Read this page**, the question about the area, the crop of a panel - there is a **picker**, each engine with the speed that was measured for it and what it needs, if you would rather choose.
 
 | order | engine | when | rough speed |
 | --- | --- | --- | --- |
 | 1 | **indra** | the bridge is connected and _indra_ is installed | ~150 ms |
-| 2 | **tesseract** | no bridge - it runs in the browser's own Node process | ~250–500 ms |
-| 3 | **paddle** | nothing else is there | **17–45 seconds** |
+| 2 | **tesseract** | always: it runs in the browser (downloaded the first time) or in the bridge | ~250–500 ms |
 
-A slow read is **visible**: the panel says it is reading, and you are not left looking at a dead button. An engine that is not installed is an **explicit, actionable** state.
+A slow read is **visible**: the panel says it is reading, and you are not left looking at a dead button. An engine that is not installed is an **explicit, actionable** state. _indra_ is a Python package, so it runs in a small helper that the VS Code extension starts - it cannot run inside a web page.
 
 ## The presenter view
 
-A second window for the projector. It is the **same canvas** the teacher is teaching - the panels come from the scene it already carries, and the live view's descriptor is published to it so it can play the same stream.
+A second window for the projector. It is the **same canvas** the teacher is teaching - the panels come from the scene it already carries, and the live view's descriptor is published to it so it can play the same stream. It follows the teacher all the way down a long page, and when a panel is shown **full screen** the presenter shows it full screen too.
 
 ## Pages
 
@@ -91,6 +104,8 @@ A page is a **page**, not just a rectangle of canvas.
 
 - A **frame** you can toggle on and off, drawn around the page's content.
 - A **page number** in the page's footer - the page's own number.
+- **Undo** of a page delete brings the page back **with** what was drawn on it, and deleted pages are kept by the browser (the 100 newest), so one can be restored even after a reload.
+- The camera is **not locked to the page**: content outside the page can be reached, and a **Back to this page** button returns to it.
 - A **size** from presets: A4 portrait and landscape, Letter portrait and landscape, 16:9, 4:3 and the project's own 1920×1080. A preset fixes the page's shape, and because a page may only grow, the shape is scaled up to the minimum page size - so the **exported** image comes out in the preset's shape.
 
 ## The virtual display and the input panel
@@ -110,17 +125,45 @@ A page is a **page**, not just a rectangle of canvas.
 
 ## Files and the sidebar
 
+- **Open files**, **Open folder** and **YouTube link** are icon buttons in the sidebar's header; the field for a YouTube link opens below when its button is pressed.
 - The list is **grouped by type**, and the badge is per kind.
 - A file that cannot be used is listed **with the reason why** - a reason you can act on.
 - A video row **drags** onto the canvas, and a loading wireframe stands where the player will land.
 - A video bigger than **32 MB** does not become a base64 data URL: it is stored as a blob in the origin's own IndexedDB. The library resolves it through a registry the host fills; the library never touches IndexedDB itself, and the presenter resolves it from the same origin's store, so a big video reaches it with no transfer and no size limit.
 - A video in a container the browser **cannot play** is never silent: the panel says so and shows the command that fixes it.
 
+## Documents: markdown and source files
+
+- A **markdown** document is shown rendered; a source file is shown highlighted. **Zoom** scales the document.
+- A **link** goes where it points. A link to another file of the opened folder - written relative to the document, from the root of the folder, with or without `.md`, to a folder (its index or README) or to a heading - opens that file **in the viewer**; a link to a website opens a **new tab**; a link to a file that was not opened says which one is missing.
+- **Select text** and the choices float under the end of the selection, inside the document: a **code card**, a **text box**, a **table**, and a close button. The text is copied as well. The text box has the **bold and italic** parts the document had - a heading, a **strong** phrase, an _emphasised_ word - so it is on the page as it was written.
+- The text of a **link** can be selected like any other text.
+
+## Bold and italic
+
+A text on the canvas can have **parts** that are bold, italic or both.
+
+- In the editor of a text, **select** what you want and press **Bold** or **Italic** (under the font family, or Ctrl+B and Ctrl+I): only the selected part changes, and pressing again takes it off. With nothing selected, or with the text only selected on the page, it is the whole text.
+- The buttons are lit when everything they are for has the style. What is typed in a bold part is bold; what is deleted takes its style with it. The editor shows the styled parts as you work.
+- The styled parts are in the canvas, in an exported image and in the SVG, are saved with the drawing and can be undone.
+
+**What it does not do:** bold and italic are drawn by **thickening and leaning the letters** of the font, not by another face of it - so every letter keeps its width and nothing moves when a part is styled. The look is close to a font's own bold and italic, not the same. A line that reads from right to left is drawn plain.
+
 ## Paste and markdown
 
 - Paste a **markdown document** and it becomes real elements - a code block becomes a code card, a table becomes a table, a mermaid fence becomes a diagram.
 - **Reformat selection** offers the choices, and it never resolves itself: when a paste does not fit, you are _offered_ the choice.
 - The fit is decided **per line** - a line that lies entirely inside the page fits, a line that straddles the edge does not.
+
+## PDFs
+
+A PDF opens in a viewer of its own (pdf.js, downloaded the first time it is used), so it does not depend on the browser having a PDF plug-in.
+
+- The page opens **fitted** to the panel. **Fit width**, **Fit page** and **Read this page** are icon buttons in the row of the zoom, outside the part that scrolls, so they are always in view. Ctrl and the wheel (or a pinch) zoom, the plain wheel scrolls, and the **middle mouse button** drags the page about. A zoom keeps the part of the document you were looking at in the middle of the view.
+- It stays smooth at a high zoom: every page has its room at once, only the pages near the view are drawn, and a page that goes far from the view gives its pixels back.
+- A drag on a page draws a **dashed box**, and the box is the selection. The choices are a row of icons **under the box**: a **code card**, a **text box**, a **table**, **where it was** (one text for each line, at the place it had on the page) and **as an image**. What is in the box is copied too. The text of a PDF is real text, so the pieces that are bold or italic in the PDF are bold or italic in the text box and in the lines of _where it was_.
+- **As an image** draws that part of the page again from the PDF itself, at up to six times its size (never more than 4096 pixels on its long edge), so the picture is as sharp as the page can give at any zoom of the viewer.
+- A page with no text - a scan - says so and points to **Read this page**, which reads the page you are on with OCR; the picker next to it chooses the engine.
 
 ## The live view
 
