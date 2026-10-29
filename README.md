@@ -21,16 +21,36 @@ A **modified Excalidraw**: a fork that adds the things a teacher needs when a VS
 | **Panels** | A canvas element that holds something: the editor's text, a video, a YouTube player, a picture. It floats, it can be locked, and it carries the VS Code look. |
 | **The bridge** | A VS Code / VSCodium extension that connects the editor to the canvas: the file you are editing is mirrored into a panel, and a **Run** button executes the panel's draft in your workspace. |
 | **The live editor** | The mirrored text is a **real editor**: you can select it, copy it as a **code block**, choose the **language** it is read as, and **zoom inside** it. |
+| **A code editor of its own** | A panel that needs no VS Code: write **Python or JavaScript** and press **Run** - it runs in the browser (Python is downloaded the first time). Dark and light themes, a console you can dock below or beside the editor, an **Input** box for `input()`, and a clear message when a program runs too long. A language VS Code can run on your machine (Java, Go, C and others) is run there when the bridge is connected. |
+| **Documents** | A viewer for markdown, source and **PDF** files. A link to another file of the opened folder opens it in the viewer; a link to a website opens a new tab. In a PDF a drag draws a **box**: what is in it goes to the page as a **code card**, a **text box**, a **table**, **where it was**, or as a **sharp picture** of that part of the page; the bold and italic of the source go with the text. |
+| **Bold and italic** | Select **part of a text** and make it bold, italic or both (Ctrl+B, Ctrl+I, or the buttons under the font); the rest of the text is left as it is. |
 | **What is mirrored** | The panel mirrors the **whole** editor window by default. You can **crop a region**, change the crop as often as you like, and turn on **follow the cursor** so the region follows your pointer. |
-| **OCR** | One action: **crop and read**. The machine picks the engine it can actually run — _indra_ with the bridge, _tesseract_ without it, _paddle_ last — and tells you which one it used and why. |
+| **OCR** | **Choose the area, then read**: the whole page is shown first and you drag out the part to read. The machine picks the engine it can actually run — _indra_ with the bridge, _tesseract_ (in the browser) without it — and tells you which one it used. The text is shown first and can be pasted as a code block, as text, or **where it was** on the page. |
 | **The presenter view** | A second window for the projector: the same canvas, full screen, following you. |
 | **Pages** | A page has a **frame** you can toggle, a **page number** in its footer, and a **size** from presets (A4, Letter, 16:9, 4:3, 1920×1080) — and the export honours it. |
 | **The virtual display** | Move the editor's window onto a **virtual display** for the projector, and bring it back — but only when **you** choose to. |
 | **YouTube captions** | Three tiers, and the panel says which tier answered. |
+| **Flow studio** | Charts built from a script: presets (process, decision, steps, network, cycle, tiers, integration), arrowless layouts (list, grid, matrix, pyramid, funnel, timeline, target, venn, hierarchy), an animation with a look of its own, a class loop and a step-by-step presenter. |
+| **The emoji and GIF bar** | A floating bar of emoji, stickers and GIFs to drop on the canvas; it folds into a round button. |
+| **Media in a chart** | A picture, GIF or video inside a node of a chart, cut to the node's shape, with four fits and a crop screen. |
+| **Ink looks** | Neon, chalk, marker and pencil on text, freehand and shapes. |
+| **Paper** | Each page has its own paper (eight kinds, twelve colours, grain and age); the image export draws every page's paper. |
 
 The [clips](clips/index.html) show each of these working. The long version, with what each feature will and will not do, is in [`docs/FEATURES.md`](docs/FEATURES.md).
 
 ---
+
+## The branches of this repository
+
+| Branch | What it is |
+| --- | --- |
+| `main` | The current release - the second one. Only the maintainer merges into it. |
+| `dev` | This branch: where the next release is prepared. It follows `main` and the maintainer's work; pull requests go here. |
+| `dev-draft` | Where contributors commit. Open a pull request from `dev-draft` to `dev`. |
+| `v1.1` | The first release with its repairs, as it was before the second release. |
+| `v1` | The first release, kept as it was published. It is **superseded**. |
+
+When a release is replaced by the next one, the one that goes is kept as a branch of its own (`v2` is the first of them), with a README that says so.
 
 ## Getting started
 
@@ -100,7 +120,7 @@ Download `OfflineSetup.exe` from the [releases page](https://github.com/Sairampv
 
 - unpacks what it carries and **checks every file against its hash** - a file that does not match is refused, never downloaded;
 - **serves the app straight away** - the app is a static bundle, so **nothing has to be installed for it to run**;
-- then asks, **one thing at a time**, whether to install the rest from its own payload: Node.js, VS Code or VSCodium, Python (only for the _paddle_ OCR engine), Java (only to build the app yourself) and the virtual display driver (which needs **administrator rights** and a **reboot** afterwards).
+- then asks, **one thing at a time**, whether to install the rest from its own payload: Node.js, VS Code or VSCodium, Python (only for the OCR engine that runs in Python), Java (only to build the app yourself) and the virtual display driver (which needs **administrator rights** and a **reboot** afterwards).
 
 `-DryRun` reports and installs nothing. `-Yes` accepts every question. A file that is missing is **reported**, never fetched.
 
@@ -207,7 +227,7 @@ Only one editor can hold the port at a time, and the app reaches that one — so
 
 1. Open your project in VS Code or VSCodium. The bridge starts with the editor.
 2. Copy the token from the status bar into the panel's **Bridge** box.
-3. In the canvas, open the main menu (the **hamburger**, top left) and choose **"Code panel (VS Code)"**. The panel lands in the middle of what you can see.
+3. In the canvas, open the main menu (the **hamburger**, top left) and choose **"VS Code mirror (bridge)"** - or **"Code editor (in the browser)"** for an editor that needs no VS Code. The panel lands in the middle of what you can see.
 4. The panel mirrors the file you are editing. **choose a language**, **zoom inside** the editor, and use **Run** to execute the draft.
 5. Open the **presenter view** for the projector window.
 6. **Take a picture** of anything on a panel — the crop it, read the text out of it, or drop it onto another page.
@@ -216,17 +236,16 @@ Only one editor can hold the port at a time, and the app reaches that one — so
 
 ## The OCR engines and the ladder
 
-You never have to choose an engine. The machine chooses, and it says what it chose and why:
+You do not have to choose an engine: the machine chooses, and it says what it chose and why. Where a page is read there is a picker - each engine with the speed that was measured for it and what it needs - if you would rather choose:
 
 | order | engine | when it is used | rough speed on an ordinary laptop |
 | --- | --- | --- | --- |
 | 1 | **indra** | when the bridge is connected and _indra_ is installed | ~150 ms |
-| 2 | **tesseract** | when the bridge is not connected — it runs in the browser's own Node process | ~250–500 ms |
-| 3 | **paddle** | last resort, when nothing else is there | **17–45 seconds** |
+| 2 | **tesseract** | always available: it runs in the browser (downloaded the first time) or in the bridge | ~250–500 ms |
 
 The numbers are a guide, not a promise — they were measured on one machine and depend on the engine's model, the resolution of the region, and the machine itself.
 
-_indra_ is **not installed by default**. Install it with `pip install indra-ocr`, and the ladder will find it. _tesseract_ ships **inside the extension** — no install needed. _paddle_ needs Python and PaddleOCR; the extension ships a path to an interpreter as its default.
+_indra_ is a Python package, so it cannot run inside a web page: it runs in a small helper that the VS Code extension starts, and it is **not installed by default** (`pip install indra-ocr`). _tesseract_ needs nothing installed.
 
 ---
 
@@ -260,7 +279,9 @@ This is a hobby project. These are the real limitations, not the pleasant ones.
 - **It is not in sync with upstream Excalidraw**, and it will not be. Upstream changes do not arrive here automatically.
 - **The YouTube caption's second tier needs a YouTube Data API key** (`excalidraw-bridge.youtubeApiKey`). Without a key that tier is unavailable and the third tier is the normal one.
 - **_indra_ is not installed by default.** The ladder falls back to _tesseract_ and says so.
-- **_paddle_ is slow** — tens of seconds on a full frame. It is the last resort, not the default.
+- **The first use needs a connection.** The in-browser Python, the PDF reader and the in-browser OCR are each downloaded from a public CDN the first time they are used.
+- **Go, Java, C and C++ are not available in the browser editor yet.** They run from VS Code when the bridge is connected and the language is installed on the machine.
+- **Bold and italic are drawn by thickening and leaning the letters**, not by another face of the font: the letters keep their width, so nothing moves, and the look is close to - not the same as - a font's own bold.
 - **The virtual display needs a virtual display driver** installed and **attached** (on Windows, the driver's own control panel — _Extend_).
 - **The OCR speed depends on the machine** and on the region you read.
 - **The clips were recorded on one machine, on one browser.** They are a demonstration, not a benchmark.
@@ -278,7 +299,8 @@ Other pieces, and the people who made them:
 
 - [CodeMirror](https://codemirror.net/) — the editor in the panel
 - [tesseract.js](https://tesseract.projectnaptha.com/) — OCR in the browser's Node process
-- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) — the OCR sidecar
+- [Pyodide](https://pyodide.org/) — Python in the browser
+- [pdf.js](https://mozilla.github.io/pdf.js/) — the PDF viewer
 - [indra-ocr](https://pypi.org/project/indra-ocr/) — the fastest engine
 - [tesseract.js-core](https://github.com/naptha/tesseract.js-core) — the wasm cores that ship inside the extension
 
@@ -289,6 +311,8 @@ All names belong to their owners.
 ## Contributing and reporting a problem
 
 This is a hobby project. Issues and pull requests are welcome, but there is no guarantee of a reply, and issues here do **not** go to the Excalidraw project. If your problem is with Excalidraw itself, report it [upstream](https://github.com/excalidraw/excalidraw/issues).
+
+**To contribute code:** commit to `dev-draft` and open a pull request to `dev`. The maintainer does not merge a pull request as it stands: the change is described, rebuilt in the maintainer's own tree with its tests, and published back to `dev` - your pull request is then closed with thanks. Nothing is merged into `main` by a pull request.
 
 ---
 
