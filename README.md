@@ -4,6 +4,24 @@ A **modified Excalidraw**: a fork that adds the things a teacher needs when a VS
 
 ![the clips](clips/index.html)
 
+> ### This release is superseded
+>
+> `v1` is the **first public release**, kept as it was published. It is **no longer maintained**, and several of the features it lists **did not work when they were tested in a browser**. The repaired code is in [`main`](../../tree/main), the second release; the first release with only its repairs, as it was before that, is the [`v1.1`](../../tree/v1.1) branch.
+>
+> What did not work in this release:
+>
+> - **Undo of a page delete** brought the page back **without** what was drawn on it.
+> - The camera was **locked to the page**: content outside the page could not be reached, and there was no way back to the page.
+> - A document **inserted as a code block** that was taller than the page gave **no offer to split it**, and could not be scrolled.
+> - **Selected text in the viewer** could not be sent to the page as a code card or a table.
+> - **Run with no bridge** said that running needs the bridge: there was **no in-browser Python**.
+> - The **presenter view stopped following** the editor past a hard limit down a long page.
+> - The **code panel's editor** had no syntax colours until a language was chosen, and the **OCR text** was not shown anywhere.
+> - The **screenshot** of a panel could be taken and cropped, but there was **no way to place it or leave** the crop without reloading the page.
+> - **PDFs** in a browser without a PDF plug-in could not be opened at all.
+>
+> These are fixed in [`v1.1`](../../tree/v1.1) (the first release with its repairs) and in [`main`](../../tree/main) (the second release).
+
 > ### Read this first
 >
 > This is a **hobby project**. It is **not** a maintained version of Excalidraw. It is **not kept in sync with the upstream codebase** — it does not track upstream's changes, it does not merge them, and it is not a drop-in replacement for Excalidraw.
@@ -31,6 +49,10 @@ A **modified Excalidraw**: a fork that adds the things a teacher needs when a VS
 The [clips](clips/index.html) show each of these working. The long version, with what each feature will and will not do, is in [`docs/FEATURES.md`](docs/FEATURES.md).
 
 ---
+
+## The branches of this repository
+
+`main` holds the current release - the second one - `dev` is where the next is prepared and follows `main`, `dev-draft` is where contributors commit, `v1.1` is the first release with its repairs, and `v1` - this branch - is the first release, kept as it was published.
 
 ## Getting started
 
