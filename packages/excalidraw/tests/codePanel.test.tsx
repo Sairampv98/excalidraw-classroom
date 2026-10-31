@@ -23,12 +23,14 @@ import { TTDDialogInput } from "../components/TTDDialog/TTDDialogInput";
 import { UIAppStateContext } from "../context/ui-appState";
 import { getDefaultAppState } from "../appState";
 import {
+  CODE_PANEL_REGION_STYLE,
   DEFAULT_PANEL_CONSOLE_VIEW,
   codePanelContent,
   emptyCodePanelState,
   readCodePanelState,
   readPanelConsole,
   readPanelDraft,
+  readPanelMirror,
   readPanelTheme,
   readPanelReadLanguage,
   readPanelView,
@@ -91,6 +93,18 @@ const codePanel = (
 const asElement = (panel: ExcalidrawPanelElement) =>
   panel as unknown as NonDeletedExcalidrawElement;
 
+/** The bridge's controls as a host passes them. */
+const bridgeControls = (
+  status: "not-connected" | "connected" | "rejected",
+  phase: "idle" | "connecting" | "connected" | "reconnecting" | "refused",
+) => ({
+  status,
+  phase,
+  message: `state: ${status}`,
+  token: "",
+  onPasteToken: () => {},
+});
+
 /**
  * A code panel in a given **view**.
  *
@@ -102,7 +116,14 @@ const codePanelInView = (
   view: "editor" | "live",
 ): ExcalidrawPanelElement =>
   codePanel(state, {
-    panel: withPanelView(codePanelContent(state, "session-1"), view),
+    // The editor view is the code editor in the browser: the VS Code
+    // mirror is the live window and has no editor view any more. The editor
+    // is what these tests are about - its text, its console, its run bar, its
+    // themes and its languages.
+    panel:
+      view === "editor"
+        ? codePanelContent(state, "session-1", { standalone: true })
+        : withPanelView(codePanelContent(state, "session-1"), view),
   });
 
 /**
@@ -170,16 +191,18 @@ describe("the code panel", () => {
     await render(<Excalidraw />);
 
     API.setAppState({ width: 1000, height: 1000 });
-    API.setElements([asElement(codePanel(connectedState()))]);
+    API.setElements([asElement(codePanelInView(connectedState(), "editor"))]);
 
     const overlay = document.querySelector('[data-testid="panel-overlay"]');
 
     expect(overlay).not.toBeNull();
 
     // the three regions, in the order the teacher reads them
-    expect(
-      overlay!.querySelector('[data-testid="code-panel-editor"]'),
-    ).not.toBeNull();
+    await waitFor(() =>
+      expect(
+        overlay!.querySelector('[data-testid="code-panel-draft-editor"]'),
+      ).not.toBeNull(),
+    );
     expect(
       overlay!.querySelector('[data-testid="code-panel-output"]')!.textContent,
     ).toContain("hello");
@@ -188,33 +211,55 @@ describe("the code panel", () => {
     ).toContain("Run started");
   });
 
-  it("with no bridge the panel shows the reconnect state, not a blank editor", async () => {
-    await render(<Excalidraw />);
+  it("with no bridge the mirror shows the token state, not a blank window", async () => {
+    await render(
+      <Excalidraw panelBridge={bridgeControls("not-connected", "idle")} />,
+    );
 
     API.setAppState({ width: 1000, height: 1000 });
     API.setElements([asElement(codePanel(emptyCodePanelState()))]);
 
     const overlay = document.querySelector('[data-testid="panel-overlay"]');
 
-    // the state is shown ...
-    const status = overlay!.querySelector('[data-testid="code-panel-status"]');
+    // the state is shown, with an icon and a sentence ...
+    const status = overlay!.querySelector(
+      '[data-testid="mirror-panel-status"]',
+    );
 
     expect(status).not.toBeNull();
-    expect(status!.getAttribute("data-bridge-state")).toBe("not-connected");
-    expect(status!.textContent).not.toBe("");
+    expect(status!.getAttribute("data-view")).toBe("token");
+    expect(
+      overlay!.querySelector('[data-testid="mirror-panel-error-icon"]'),
+    ).not.toBeNull();
+    expect(
+      overlay!.querySelector('[data-testid="mirror-panel-message"]')!
+        .textContent,
+    ).toContain("Paste the token");
 
-    // ... and there is **no** blank editor behind it
+    // ... with the field to give the token in ...
+    expect(
+      overlay!
+        .querySelector('[data-testid="panel-bridge"]')!
+        .getAttribute("data-bridge-state"),
+    ).toBe("not-connected");
+
+    // ... and there is **no** window pretending to be the editor
+    expect(
+      overlay!.querySelector('[data-testid="code-panel-live-window"]'),
+    ).toBeNull();
     expect(
       overlay!.querySelector('[data-testid="code-panel-editor"]'),
     ).toBeNull();
   });
 
-  it("a connected panel with no editor shows what it knows, not a blank region", async () => {
-    await render(<Excalidraw />);
+  it("a connected mirror with no live view yet says what it is waiting for, not a blank region", async () => {
+    await render(
+      <Excalidraw panelBridge={bridgeControls("connected", "connected")} />,
+    );
 
     API.setAppState({ width: 1000, height: 1000 });
 
-    // connected, but the extension has not sent an editor: no file is open
+    // connected, but the extension has not sent the editor's window yet
     API.setElements([
       asElement(
         codePanel({
@@ -225,114 +270,149 @@ describe("the code panel", () => {
       ),
     ]);
 
-    const overlay = document.querySelector('[data-testid="panel-overlay"]');
+    const status = document.querySelector(
+      '[data-testid="mirror-panel-status"]',
+    );
 
-    expect(overlay).not.toBeNull();
+    expect(status).not.toBeNull();
+    expect(status!.getAttribute("data-view")).toBe("waiting");
 
-    // the region is there ...
+    // a spinner, and a sentence that says what it waits for. A blank region
+    // looks like a broken panel.
     expect(
-      overlay!.querySelector('[data-testid="code-panel-editor"]'),
+      document.querySelector('[data-testid="mirror-panel-spinner"]'),
     ).not.toBeNull();
-
-    // ... and it SAYS that no file is open, instead of being blank. A blank
-    // region looks like a broken panel, and the teacher cannot tell it apart
-    // from a program that produced nothing.
-    const noEditor = overlay!.querySelector(
-      '[data-testid="code-panel-no-editor"]',
-    );
-
-    expect(noEditor).not.toBeNull();
-    expect(noEditor!.textContent).not.toBe("");
-    expect(noEditor!.textContent).toContain("No file is open");
-  });
-
-  it("the code panel's source region is never blank", async () => {
-    await render(<Excalidraw />);
-
-    API.setAppState({ width: 1000, height: 1000 });
-
-    // The bridge is not connected. The panel says WHY it has nothing to show,
-    // and it never renders an empty editor - a blank editor is a black box
-    // with no explanation, which is exactly what the teacher saw on
-    // 2026-10-22 .
-    API.setElements([asElement(codePanel(emptyCodePanelState()))]);
-
-    await waitFor(() =>
-      expect(
-        document.querySelector('[data-testid="code-panel-status"]'),
-      ).not.toBeNull(),
-    );
-
-    const status = document.querySelector('[data-testid="code-panel-status"]')!;
-
-    expect(status.textContent).not.toBe("");
-    expect(status.textContent).toContain("Not connected");
-
-    // and there is no empty editor pretending to be the source
     expect(
-      document.querySelector('[data-testid="code-panel-editor"]'),
-    ).toBeNull();
-
-    // The bridge is connected and a file IS open, but the file has no content.
-    // The source region says that, instead of showing an empty editor.
-    const state = connectedState();
-
-    API.setElements([
-      asElement(
-        codePanel({
-          ...state,
-          editor: { ...state.editor, text: "" },
-        }),
-      ),
-    ]);
-
-    await waitFor(() =>
-      expect(
-        document.querySelector('[data-testid="code-panel-empty-file"]'),
-      ).not.toBeNull(),
-    );
-
-    const source = document.querySelector('[data-testid="code-panel-source"]')!;
-
-    expect(source.textContent).toContain("This file is empty.");
-    expect(source.querySelector(".cm-editor")).toBeNull();
+      document.querySelector('[data-testid="mirror-panel-message"]')!
+        .textContent,
+    ).toContain("Waiting for the editor's window");
   });
 
-  it("the panel chrome shows the three connection states", async () => {
-    const onPasteToken = vi.fn();
-
-    const bridge = (status: "not-connected" | "connected" | "rejected") => ({
-      status,
-      message: `state: ${status}`,
-      token: "",
-      onPasteToken,
-    });
-
-    // one mount, three props: the editor is heavy, and the gate runs the whole
-    // suite on this machine
+  it("the mirror's body is never blank: each state says why there is no picture", async () => {
     const { rerender } = await render(
-      <Excalidraw panelBridge={bridge("not-connected")} />,
+      <Excalidraw panelBridge={bridgeControls("not-connected", "idle")} />,
     );
 
     API.setAppState({ width: 1000, height: 1000 });
 
-    const panel = codePanel(connectedState());
+    // The bridge is not connected. The panel says WHY it has nothing to show -
+    // a blank panel is a black box with no explanation, which is exactly what
+    // the teacher saw on 2026-10-22.
+    const panel = codePanel(emptyCodePanelState());
 
     API.setElements([asElement(panel)]);
-    API.setSelectedElements([asElement(panel)]);
 
-    for (const status of ["not-connected", "connected", "rejected"] as const) {
-      rerender(<Excalidraw panelBridge={bridge(status)} />);
-
-      const field = document.querySelector('[data-testid="panel-bridge"]');
-
-      expect(field).not.toBeNull();
-      expect(field!.getAttribute("data-bridge-state")).toBe(status);
+    await waitFor(() =>
       expect(
-        document.querySelector('[data-testid="panel-bridge-state"]')!
-          .textContent,
-      ).toBe(`state: ${status}`);
-    }
+        document.querySelector('[data-testid="mirror-panel-message"]'),
+      ).not.toBeNull(),
+    );
+
+    expect(
+      document.querySelector('[data-testid="mirror-panel-message"]')!
+        .textContent,
+    ).not.toBe("");
+
+    // The bridge is connected and the editor says it cannot draw the window:
+    // the body says that and says why.
+    act(() => {
+      setPanelCapture(panel.id, {
+        status: "unavailable",
+        reason: "the capture helper could not be started",
+      });
+    });
+
+    rerender(
+      <Excalidraw panelBridge={bridgeControls("connected", "connected")} />,
+    );
+
+    await waitFor(() =>
+      expect(
+        document
+          .querySelector('[data-testid="mirror-panel-status"]')
+          ?.getAttribute("data-view"),
+      ).toBe("unavailable"),
+    );
+
+    expect(
+      document.querySelector('[data-testid="mirror-panel-message"]')!
+        .textContent,
+    ).toContain("capture helper");
+    expect(
+      document.querySelector('[data-testid="mirror-panel-error-icon"]'),
+    ).not.toBeNull();
+
+    act(() => {
+      clearAllPanelCaptures();
+    });
+  });
+
+  it("the mirror shows a state for each of the connection's states", async () => {
+    // one mount, a prop per state
+    const { rerender } = await render(
+      <Excalidraw panelBridge={bridgeControls("not-connected", "idle")} />,
+    );
+
+    API.setAppState({ width: 1000, height: 1000 });
+    API.setElements([asElement(codePanel(connectedState()))]);
+
+    const view = () =>
+      document
+        .querySelector('[data-testid="mirror-panel-status"]')
+        ?.getAttribute("data-view");
+
+    // not connected: the field to paste the token in
+    expect(view()).toBe("token");
+    expect(
+      document
+        .querySelector('[data-testid="panel-bridge"]')!
+        .getAttribute("data-bridge-state"),
+    ).toBe("not-connected");
+
+    // connecting: a spinner and the host's own sentence
+    rerender(
+      <Excalidraw
+        panelBridge={bridgeControls("not-connected", "connecting")}
+      />,
+    );
+    expect(view()).toBe("connecting");
+    expect(
+      document.querySelector('[data-testid="mirror-panel-spinner"]'),
+    ).not.toBeNull();
+    expect(
+      document.querySelector('[data-testid="mirror-panel-hint"]')!.textContent,
+    ).toBe("state: not-connected");
+
+    // the extension does not answer: a spinner, and the field in case the
+    // token is the reason
+    rerender(
+      <Excalidraw panelBridge={bridgeControls("rejected", "reconnecting")} />,
+    );
+    expect(view()).toBe("looking");
+    expect(
+      document
+        .querySelector('[data-testid="panel-bridge"]')!
+        .getAttribute("data-bridge-state"),
+    ).toBe("rejected");
+
+    // the extension answered and did not accept the token: an error and the
+    // field
+    rerender(
+      <Excalidraw panelBridge={bridgeControls("rejected", "refused")} />,
+    );
+    expect(view()).toBe("refused");
+    expect(
+      document.querySelector('[data-testid="mirror-panel-error-icon"]'),
+    ).not.toBeNull();
+    expect(
+      document.querySelector('[data-testid="panel-bridge-token"]'),
+    ).not.toBeNull();
+
+    // connected: the field goes away
+    rerender(
+      <Excalidraw panelBridge={bridgeControls("connected", "connected")} />,
+    );
+    expect(document.querySelector('[data-testid="panel-bridge"]')).toBeNull();
   });
 
   it("the paste button asks the host for the token, and the token is masked", async () => {
@@ -341,8 +421,7 @@ describe("the code panel", () => {
     await render(
       <Excalidraw
         panelBridge={{
-          status: "not-connected",
-          message: "Not connected to the Excalidraw Bridge.",
+          ...bridgeControls("not-connected", "idle"),
           token: "a-token-the-teacher-pasted",
           onPasteToken,
         }}
@@ -350,11 +429,7 @@ describe("the code panel", () => {
     );
 
     API.setAppState({ width: 1000, height: 1000 });
-
-    const panel = codePanel(connectedState());
-
-    API.setElements([asElement(panel)]);
-    API.setSelectedElements([asElement(panel)]);
+    API.setElements([asElement(codePanel(connectedState()))]);
 
     const input = document.querySelector(
       '[data-testid="panel-bridge-token"]',
@@ -385,32 +460,21 @@ describe("the code panel", () => {
     expect(readCodePanelState(cloned)).toEqual(state);
   });
 
-  it("the panel's editor region names the file it is mirroring, and says so when there is none", async () => {
-    await render(<Excalidraw />);
+  it("the mirror's header names the file it is mirroring, and says VS Code when there is none", async () => {
+    await render(
+      <Excalidraw panelBridge={bridgeControls("connected", "connected")} />,
+    );
 
     API.setAppState({ width: 1000, height: 1000 });
     API.setElements([asElement(codePanel(connectedState()))]);
 
-    const overlay = document.querySelector('[data-testid="panel-overlay"]');
-
-    // the tab strip is IN the editor region ...
-    const editor = overlay!.querySelector('[data-testid="code-panel-editor"]')!;
-    const header = editor.querySelector('[data-testid="code-panel-header"]');
-
-    expect(header).not.toBeNull();
-
-    // ... and it says WHICH file this is, the way a VS Code tab says it: the
-    // file's name and its language. Code with no name reads as a text box
-    //.
+    // the header says WHICH file the window is showing, the way a VS Code tab
+    // says it. A window with no name reads as a screenshot.
     expect(
-      header!.querySelector('[data-testid="code-panel-file"]')!.textContent,
+      document.querySelector('[data-testid="mirror-panel-title"]')!.textContent,
     ).toBe("main.py");
-    expect(
-      header!.querySelector('[data-testid="code-panel-language"]')!.textContent,
-    ).toBe("python");
 
-    // with no file open, the header SAYS so - with the wording the panel
-    // already uses for that case
+    // with no file open the header names the editor
     API.setElements([
       asElement(
         codePanel({
@@ -421,11 +485,12 @@ describe("the code panel", () => {
       ),
     ]);
 
-    const emptyHeader = document.querySelector(
-      '[data-testid="code-panel-header"]',
-    )!;
-
-    expect(emptyHeader.textContent).toContain("No file is open");
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-testid="mirror-panel-title"]')!
+          .textContent,
+      ).toBe("VS Code"),
+    );
   });
 
   it("the mirrored code is rendered in the VS Code dark theme, with its line numbers", async () => {
@@ -435,7 +500,7 @@ describe("the code panel", () => {
     await render(<Excalidraw theme="light" />);
 
     API.setAppState({ width: 1000, height: 1000 });
-    API.setElements([asElement(codePanel(connectedState()))]);
+    API.setElements([asElement(codePanelInView(connectedState(), "editor"))]);
 
     // the editor is loaded lazily, the way the TTD dialog loads it
     await waitFor(() =>
@@ -470,17 +535,14 @@ describe("the code panel", () => {
     ).not.toBeNull();
   });
 
-  it("the code region keeps its height: the chrome, the output and the console do not squeeze the code out of the panel", async () => {
+  it("the output and the console shrink and scroll: they do not push the editor out of the panel", async () => {
     await render(<Excalidraw />);
 
     API.setAppState({ width: 1000, height: 1000 });
-    API.setElements([asElement(codePanel(connectedState()))]);
+    API.setElements([asElement(codePanelInView(connectedState(), "editor"))]);
 
     const overlay = document.querySelector('[data-testid="panel-overlay"]')!;
 
-    const editor = overlay.querySelector(
-      '[data-testid="code-panel-editor"]',
-    ) as HTMLElement;
     const output = overlay.querySelector(
       '[data-testid="code-panel-output"]',
     ) as HTMLElement;
@@ -488,12 +550,9 @@ describe("the code panel", () => {
       '[data-testid="code-panel-console"]',
     ) as HTMLElement;
 
-    // the code region has a FLOOR: the chrome, the output and the console
-    // cannot squeeze it out of the panel
-    expect(editor.style.minHeight).toBe("120px");
-    expect(editor.style.flex).toBe("1 1 auto");
-
-    // and the output and the console shrink instead of the code - they scroll
+    // the output and the console shrink instead of the code - they scroll
+    expect(output.style.flex).toBe(CODE_PANEL_REGION_STYLE.output.flex);
+    expect(consoleRegion.style.flex).toBe(CODE_PANEL_REGION_STYLE.console.flex);
     expect(output.style.flex).toBe("0 1 auto");
     expect(consoleRegion.style.flex).toBe("0 1 auto");
   });
@@ -533,7 +592,7 @@ describe("the code panel", () => {
     await render(<Excalidraw theme="light" />);
 
     API.setAppState({ width: 1000, height: 1000 });
-    API.setElements([asElement(codePanel(connectedState()))]);
+    API.setElements([asElement(codePanelInView(connectedState(), "editor"))]);
 
     await waitFor(() =>
       expect(
@@ -564,7 +623,7 @@ describe("the code panel", () => {
     await render(<Excalidraw theme="light" />);
 
     API.setAppState({ width: 1000, height: 1000 });
-    API.setElements([asElement(codePanel(connectedState()))]);
+    API.setElements([asElement(codePanelInView(connectedState(), "editor"))]);
 
     await waitFor(() =>
       expect(
@@ -644,15 +703,10 @@ describe("the code panel", () => {
     expect(image.getAttribute("width")).toBeNull();
     expect(image.getAttribute("height")).toBeNull();
 
-    // the tab strip is still there: the live view replaces the TEXT, not the
-    // panel's chrome
+    // the header is still there and names the file the window shows
     expect(
-      document.querySelector('[data-testid="code-panel-file"]')!.textContent,
+      document.querySelector('[data-testid="mirror-panel-title"]')!.textContent,
     ).toBe("main.py");
-    expect(
-      document.querySelector('[data-testid="code-panel-language"]')!
-        .textContent,
-    ).toBe("python");
 
     // and the mirrored text is not drawn under the picture
     expect(
@@ -753,9 +807,9 @@ describe("the code panel", () => {
     });
   });
 
-  it("the live view falls back to the text mirror and says why", async () => {
-    // the teacher turned the live view on, and the capture cannot run
-    const panel = codePanelInView(connectedState(), "live");
+  it("a mirror whose live view cannot run shows an error and says why", async () => {
+    // the capture cannot run: the extension says so
+    const panel = codePanel(connectedState());
 
     setPanelCapture(panel.id, {
       status: "unavailable",
@@ -767,66 +821,41 @@ describe("the code panel", () => {
     API.setAppState({ width: 1000, height: 1000 });
     API.setElements([asElement(panel)]);
 
-    // the TEXT is the fallback: the mirrored code is still there ...
+    // the panel SAYS why there is no live view, with an error icon. A
+    // fallback the teacher cannot explain is a broken panel.
     await waitFor(() =>
       expect(
-        document.querySelector('[data-testid="code-panel-source"] .cm-editor'),
+        document.querySelector('[data-testid="mirror-panel-error-icon"]'),
       ).not.toBeNull(),
     );
 
-    // ... and the panel SAYS why there is no live view. A fallback the
-    // teacher cannot explain is a broken panel.
-    const status = document.querySelector(
-      '[data-testid="code-panel-live-status"]',
-    );
+    expect(
+      document.querySelector('[data-testid="mirror-panel-message"]')!
+        .textContent,
+    ).toContain("capture helper");
 
-    expect(status).not.toBeNull();
-    expect(status!.textContent).toContain("capture helper");
-
-    // and there is no picture pretending to be the editor
+    // and there is no picture pretending to be the editor, and no text either:
+    // the mirror is the editor's window and nothing else
     expect(
       document.querySelector('[data-testid="code-panel-live-frame"]'),
     ).toBeNull();
+    expect(document.querySelector(".cm-editor")).toBeNull();
 
+    // when the window comes back the panel draws it, with no click
     act(() => {
-      clearAllPanelCaptures();
-    });
-  });
-
-  it("in the live view, with no capture, the panel falls back to the text and says why", async () => {
-    // the teacher turned the live view on, and there is no picture to show
-    const panel = codePanelInView(connectedState(), "live");
-
-    // the capture helper cannot run, or it stopped: the extension says so
-    setPanelCapture(panel.id, {
-      status: "unavailable",
-      reason: "the capture helper could not be started",
+      setPanelCapture(panel.id, {
+        status: "live",
+        streamUrl: "http://127.0.0.1:47511/s/a-capability/frame",
+      });
     });
 
-    await render(<Excalidraw />);
-
-    API.setAppState({ width: 1000, height: 1000 });
-    API.setElements([asElement(panel)]);
-
-    // the TEXT is the fallback: the mirrored code is still there ...
     await waitFor(() =>
       expect(
-        document.querySelector('[data-testid="code-panel-source"] .cm-editor'),
+        document.querySelector('[data-testid="code-panel-live-frame"]'),
       ).not.toBeNull(),
     );
-
-    // ... and the panel SAYS why there is no live view. A fallback the
-    // teacher cannot explain is a broken panel.
-    const status = document.querySelector(
-      '[data-testid="code-panel-live-status"]',
-    );
-
-    expect(status).not.toBeNull();
-    expect(status!.textContent).toContain("capture helper");
-
-    // and there is no picture pretending to be the editor
     expect(
-      document.querySelector('[data-testid="code-panel-live-frame"]'),
+      document.querySelector('[data-testid="mirror-panel-status"]'),
     ).toBeNull();
 
     act(() => {
@@ -881,8 +910,8 @@ describe("the code panel's view", () => {
     registerCodeMirrorLanguage("mermaid", async () => mermaidLite());
   });
 
-  it("the code panel's default view is the live window, and the native editor is the teacher's choice", async () => {
-    // a panel that carries no choice: it follows the default
+  it("the VS Code mirror is the live window, and it has no editor view to switch to", async () => {
+    // a panel that carries no choice
     const panel = codePanel(connectedState());
 
     await render(<Excalidraw />);
@@ -898,85 +927,44 @@ describe("the code panel's view", () => {
       });
     });
 
-    // ... and the panel shows the LIVE WINDOW: it is the default, and the
-    // teacher never asked for anything else.
+    // ... and the panel shows the LIVE WINDOW: it is the only view
     await waitFor(() =>
       expect(
         document.querySelector('[data-testid="code-panel-live-frame"]'),
       ).not.toBeNull(),
     );
 
-    // the picture replaced the text: the live window IS the view now
+    // no text editor under or beside the picture
     expect(
       document.querySelector('[data-testid="code-panel-source"] .cm-editor'),
     ).toBeNull();
 
-    // and the panel SAYS which view it is in
-    const toggle = document.querySelector(
-      '[data-testid="code-panel-view-toggle"]',
-    ) as HTMLButtonElement;
+    // and no switch to one: the code editor in the browser is its own panel,
+    // opened from the menu
+    expect(
+      document.querySelector('[data-testid="code-panel-view-toggle"]'),
+    ).toBeNull();
 
-    expect(toggle).not.toBeNull();
-    expect(toggle.getAttribute("data-view")).toBe("live");
+    // the header carries the mirror's own tools instead
+    expect(
+      document.querySelector('[data-testid="code-panel-mirror-modes"]'),
+    ).not.toBeNull();
 
     act(() => {
       clearAllPanelCaptures();
     });
   });
 
-  it("the teacher turns the live view on from the panel, and the choice is the panel's own", async () => {
-    // the teacher is in the EDITOR view - the one they chose
-    const panel = codePanelInView(connectedState(), "editor");
+  it("the mirror's choices are the panel's own, and the bridge's writes do not wipe them", async () => {
+    const panel = codePanel(connectedState());
 
-    await render(<Excalidraw />);
-
-    API.setAppState({ width: 1000, height: 1000 });
-    API.setElements([asElement(panel)]);
-
-    act(() => {
-      setPanelCapture(panel.id, {
-        status: "live",
-        streamUrl: "http://127.0.0.1:47511/s/a-capability/frame",
-      });
-    });
-
-    await waitFor(() =>
-      expect(
-        document.querySelector('[data-testid="code-panel-source"] .cm-editor'),
-      ).not.toBeNull(),
-    );
-
-    // the toggle is in the panel's OWN header, which is always mounted. It is
-    // NOT in the chrome: the chrome is only rendered for a SELECTED panel, so
-    // a button there would be invisible until the panel is selected.
-    const toggle = document.querySelector(
-      '[data-testid="code-panel-view-toggle"]',
-    ) as HTMLButtonElement;
-
-    expect(toggle).not.toBeNull();
-    expect(toggle.getAttribute("data-view")).toBe("editor");
-
-    // the teacher turns the live view on
-    fireEvent.click(toggle);
-
-    await waitFor(() =>
-      expect(
-        document.querySelector('[data-testid="code-panel-live-frame"]'),
-      ).not.toBeNull(),
-    );
-
-    // and the frame replaces the text
-    expect(
-      document.querySelector('[data-testid="code-panel-source"] .cm-editor'),
-    ).toBeNull();
-
-    // the choice is the PANEL's own, and it is persisted in its payload
-    expect(readPanelView(panel.panel)).toBe("live");
+    // the teacher's choice of what is mirrored rides in the payload
+    const region = { x: 0.1, y: 0.1, width: 0.5, height: 0.5 };
+    const chosen = withPanelMirror(panel.panel, { region, follow: true });
 
     // and it survives the bridge's own writes: the bridge rewrites the
-    // panel's payload on every keystroke in the teacher's editor, and the
-    // teacher's choice of view must not be wiped by that.
-    const afterBridgeWrite = withCodePanelState(panel.panel, {
+    // panel's payload on every keystroke in the teacher's editor
+    const afterBridgeWrite = withCodePanelState(chosen, {
       ...connectedState(),
       editor: {
         ...connectedState().editor,
@@ -985,33 +973,19 @@ describe("the code panel's view", () => {
       },
     });
 
-    expect(readPanelView(afterBridgeWrite)).toBe("live");
-
-    // and the teacher turns it back
-    fireEvent.click(
-      document.querySelector('[data-testid="code-panel-view-toggle"]')!,
-    );
-
-    await waitFor(() =>
-      expect(
-        document.querySelector('[data-testid="code-panel-source"] .cm-editor'),
-      ).not.toBeNull(),
-    );
-
-    expect(readPanelView(panel.panel)).toBe("editor");
-
-    act(() => {
-      clearAllPanelCaptures();
+    expect(readPanelMirror(afterBridgeWrite)).toEqual({
+      region,
+      follow: true,
     });
   });
 
-  it("a new code panel shows the live window by default", async () => {
-    // a NEW panel: its payload carries no choice, so it follows the default
+  it("a code panel shows the live window, the ones saved in the editor view too", async () => {
+    // a NEW panel: its payload carries no choice
     const fresh = codePanel(connectedState());
 
     // and a panel that ALREADY exists: an earlier version wrote `view:
     // "editor"` into every payload, and that was the OLD default - not a
-    // choice the teacher ever made
+    // choice the teacher ever made. The mirror has no editor view now.
     const existing = codePanel(connectedState(), {
       panel: {
         ...codePanelContent(connectedState(), "session-1"),
@@ -1034,34 +1008,27 @@ describe("the code panel's view", () => {
       }
     });
 
-    // ... and BOTH panels show the LIVE WINDOW: it is the default, and the
-    // flip reaches the panels that already exist
+    // ... and BOTH panels show the LIVE WINDOW
     await waitFor(() =>
       expect(
         document.querySelectorAll('[data-testid="code-panel-live-frame"]'),
       ).toHaveLength(2),
     );
 
-    // the picture replaced the text in both of them
+    // the picture is the whole panel: no text, no switch
     expect(
       document.querySelector('[data-testid="code-panel-source"] .cm-editor'),
     ).toBeNull();
-
-    // and the panel SAYS which view it is in, so the teacher can see what a
-    // click will do
-    const toggle = document.querySelector(
-      '[data-testid="code-panel-view-toggle"]',
-    ) as HTMLButtonElement;
-
-    expect(toggle).not.toBeNull();
-    expect(toggle.getAttribute("data-view")).toBe("live");
+    expect(
+      document.querySelector('[data-testid="code-panel-view-toggle"]'),
+    ).toBeNull();
 
     act(() => {
       clearAllPanelCaptures();
     });
   });
 
-  it("a panel the teacher switched to the editor keeps the editor across a reload", async () => {
+  it("a code editor of its own stays the editor across a reload", async () => {
     // the teacher switched the panel to the editor view: that is a CHOICE,
     // and it is in the payload
     const panel = codePanelInView(connectedState(), "editor");
@@ -1099,13 +1066,11 @@ describe("the code panel's view", () => {
       document.querySelector('[data-testid="code-panel-live-frame"]'),
     ).toBeNull();
 
-    // and the header says which view it is in
-    const toggle = document.querySelector(
-      '[data-testid="code-panel-view-toggle"]',
-    ) as HTMLButtonElement;
-
-    expect(toggle).not.toBeNull();
-    expect(toggle.getAttribute("data-view")).toBe("editor");
+    // and there is no switch to the live window: the editor is a panel of
+    // its own
+    expect(
+      document.querySelector('[data-testid="code-panel-view-toggle"]'),
+    ).toBeNull();
 
     act(() => {
       clearAllPanelCaptures();
@@ -1125,8 +1090,17 @@ describe("the code panel's view", () => {
       return [];
     });
 
-    // the file VS Code calls `python`
-    const panel = codePanel(connectedState());
+    // the editor's own text, in python
+    const panel = codePanelInView(connectedState(), "editor");
+
+    (panel as unknown as { panel: unknown }).panel = withPanelDraft(
+      panel.panel,
+      {
+        text: "def greet():",
+        language: "python",
+        edited: true,
+      },
+    );
 
     await render(<Excalidraw />);
 
@@ -1181,15 +1155,16 @@ describe("the code panel's view", () => {
     // it is not.
     const state = connectedState();
 
-    const panel = codePanel({
-      ...state,
-      editor: {
-        ...state.editor,
-        uri: "file:///demo/main.bf",
-        language: "brainfuck",
+    const panel = codePanelInView(state, "editor");
+
+    (panel as unknown as { panel: unknown }).panel = withPanelDraft(
+      panel.panel,
+      {
         text: "def greet():",
+        language: "brainfuck",
+        edited: true,
       },
-    });
+    );
 
     await render(<Excalidraw />);
 
@@ -1340,7 +1315,7 @@ describe("the code panel's view", () => {
     ).toBe("draft");
   });
 
-  it("the editor view works with no bridge and says that running needs one", async () => {
+  it("the code editor works with no bridge and says that running needs one", async () => {
     const onChange = vi.fn();
 
     const panel = codePanelInView(emptyCodePanelState(), "editor");
@@ -1352,15 +1327,8 @@ describe("the code panel's view", () => {
 
     const overlay = document.querySelector('[data-testid="panel-overlay"]');
 
-    // the state of the connection is said ...
-    const status = overlay!.querySelector('[data-testid="code-panel-status"]');
-
-    expect(status).not.toBeNull();
-    expect(status!.getAttribute("data-bridge-state")).toBe("not-connected");
-    expect(status!.textContent).not.toBe("");
-
-    // ... and the editor is there anyway, and it is editable: the teacher's
-    // own text does not need a bridge
+    // the editor is there, and it is editable: the teacher's own text does
+    // not need a bridge
     const host = await waitFor(() => {
       const found = overlay!.querySelector(
         '[data-testid="code-panel-draft-editor"]',
@@ -1382,13 +1350,18 @@ describe("the code panel's view", () => {
     expect(content.getAttribute("contenteditable")).toBe("true");
     expect(content.getAttribute("aria-readonly")).toBeNull();
 
+    // it does not report a connection: the VS Code mirror is a panel of its
+    // own now, and the editor in the browser has nothing to connect to
+    expect(
+      overlay!.querySelector('[data-testid="code-panel-status"]'),
+    ).toBeNull();
+
     // and the panel says that running needs the bridge
     const note = overlay!.querySelector(
       '[data-testid="code-panel-run-needs-bridge"]',
     );
 
     expect(note).not.toBeNull();
-    expect(note!.textContent).not.toBe("");
     expect(note!.textContent).toContain("Bridge");
 
     // the Run control is there, and it is not pretending
@@ -2046,10 +2019,15 @@ describe("the code panel's view", () => {
   });
 
   it("a language nothing can run says that it is only given its colours", async () => {
-    const empty = emptyCodePanelState();
-    const panel = codePanelInView(
-      { ...empty, editor: { ...empty.editor, language: "typescript" } },
-      "editor",
+    const panel = codePanelInView(emptyCodePanelState(), "editor");
+
+    (panel as unknown as { panel: unknown }).panel = withPanelDraft(
+      panel.panel,
+      {
+        text: "",
+        language: "typescript",
+        edited: true,
+      },
     );
 
     await render(
@@ -2170,6 +2148,15 @@ describe("the live editor is a real editor", () => {
     const onCopyAsCodeBlock = vi.fn();
 
     const panel = codePanelInView(connectedState(), "editor");
+
+    (panel as unknown as { panel: unknown }).panel = withPanelDraft(
+      panel.panel,
+      {
+        text: "print('hello')",
+        language: "python",
+        edited: true,
+      },
+    );
 
     await render(
       <Excalidraw
@@ -2510,18 +2497,21 @@ describe("what is mirrored", () => {
         height: 200,
       } as DOMRect);
 
-    // the teacher points at the right-hand side of the mirrored region
+    // the teacher points at the right of the middle of the window, still in
+    // the rest zone: the area stays where it is
     fireEvent.pointerMove(mirrorWindow, { clientX: 300, clientY: 100 });
+    expect(onChange).not.toHaveBeenCalled();
 
-    // and the region moves: it keeps its size, and its middle is under the
-    // pointer
+    // and near the right edge: the area moves towards the pointer, by a step,
+    // and keeps its size
+    fireEvent.pointerMove(mirrorWindow, { clientX: 380, clientY: 100 });
     expect(onChange).toHaveBeenCalledTimes(1);
 
     const [panelId, mirror] = onChange.mock.calls[0];
 
     expect(panelId).toBe(panel.id);
     expect(mirror.region).toEqual({
-      x: 0.375,
+      x: 0.316667,
       y: 0.1,
       width: 0.5,
       height: 0.4,

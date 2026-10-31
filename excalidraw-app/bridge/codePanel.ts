@@ -396,6 +396,14 @@ export const toPanelCapture = (
           ...(message.region ? { region: message.region } : {}),
           ...(message.width ? { width: message.width } : {}),
           ...(message.height ? { height: message.height } : {}),
+          // The control of the window and whether it is parked:
+          // the extension's own state, so every panel says the same thing.
+          ...(message.control ? { control: message.control } : {}),
+          ...(message.parked ? { parked: true } : {}),
+          // and whether it is on the virtual display, and whether there is one
+          //
+          ...(message.virtual ? { virtual: true } : {}),
+          ...(message.virtualAvailable ? { virtualAvailable: true } : {}),
         }
       : {
           status: "unavailable",

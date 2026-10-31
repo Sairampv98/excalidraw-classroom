@@ -323,12 +323,11 @@ describe("the youtube panel", () => {
     });
   });
 
-  it("the caption note overlays the video and carries the whole reason as its tooltip", async () => {
+  it("the caption note overlays the video and carries the whole note as its tooltip", async () => {
     const panel = youtubePanel({
       panel: youtubePanelContent({
         videoId: VIDEO_ID,
-        tier: "none",
-        reason: REASON,
+        tier: "api",
       }),
     });
 
@@ -369,7 +368,32 @@ describe("the youtube panel", () => {
 
     // the WHOLE reason is the tooltip, and the line carries the short truth -
     // the beginning of the reason, which is the part that matters
-    expect(note!.getAttribute("title")).toBe(REASON);
-    expect(note!.textContent).toBe(REASON);
+    expect(note!.textContent).not.toBe("");
+    expect(note!.getAttribute("title")).toBe(note!.textContent);
+  });
+
+  it("a panel with no captions draws no note over the video", async () => {
+    const panel = youtubePanel({
+      panel: youtubePanelContent({
+        videoId: VIDEO_ID,
+        tier: "none",
+        reason: REASON,
+      }),
+    });
+
+    await render(
+      <Excalidraw
+        initialData={{
+          elements: [panel] as unknown as ExcalidrawElement[],
+        }}
+      />,
+    );
+
+    API.setAppState({ width: 1000, height: 1000 });
+
+    // the video is there, and nothing is written over it
+    expect(embed()).not.toBeNull();
+    expect(captionNote()).toBeNull();
+    expect(document.body.textContent).not.toContain("YouTube API key");
   });
 });

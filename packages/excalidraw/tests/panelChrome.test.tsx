@@ -184,7 +184,7 @@ const measureAt = async (zoom: number): Promise<Measurement> => {
   expect(scale).toBeCloseTo(zoom, 5);
 
   const header = container.querySelector(
-    '[data-testid="code-panel-header"]',
+    '[data-testid="mirror-panel-header"]',
   ) as HTMLElement | null;
   const controls = container.querySelector(
     '[data-testid="panel-video-controls"]',
@@ -528,9 +528,10 @@ describe("the panel's actions live in the properties panel", () => {
     expect(read).toEqual([panel.id]);
   });
 
-  it("the panel overlay carries no action button and no bridge box", async () => {
-    // The picture carries no button at all, and the bridge box does not float
-    // over the editor and the live window any more.
+  it("the panel overlay carries no floating action button and no floating bridge box", async () => {
+    // The picture carries no floating button, and the bridge box does not float
+    // over the editor and the live window any more: the field
+    // for the token is the mirror's own state, drawn IN the panel.
     const panel = codePanel();
 
     const { container } = await render(
@@ -568,12 +569,17 @@ describe("the panel's actions live in the properties panel", () => {
       "panel-screenshot-button",
       "panel-ocr-button",
       "panel-ocr-engine-picker",
-      "panel-bridge",
-      "panel-bridge-token",
-      "panel-bridge-connect",
     ]) {
       expect(picture.querySelector(`[data-testid="${testId}"]`)).toBeNull();
     }
+
+    // the token field is the body of the mirror's "no token" state, not a
+    // box over the picture
+    expect(
+      picture.querySelector(
+        '[data-testid="mirror-panel-status"] [data-testid="panel-bridge"]',
+      ),
+    ).not.toBeNull();
 
     // and the chrome layer carries neither the bridge box nor the read: the
     // chrome never covers the picture it describes
