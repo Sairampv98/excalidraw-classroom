@@ -226,6 +226,11 @@ Every action the editor registers is named, and a test fails when one is not: 38
 | `setEmbeddableAsActiveTool` | the tool `set_tool` |
 | `setFrameAsActiveTool` | the tool `set_tool` |
 | `insertDocument` | the tool `insert_document` |
+| `changePanel` | `set_panel`, in a later part of the server |
+| `cropEditor` | `crop_image`, in a later part of the server |
+| `flowClass` | `flow_class`, in a later part of the server |
+| `flowLayout` | `flow_layout`, in a later part of the server |
+| `flowResetLayout` | `flow_reset_layout`, in a later part of the server |
 | `copy` | not for the assistant: the person's clipboard is the person's own |
 | `cut` | not for the assistant: the person's clipboard is the person's own |
 | `paste` | not for the assistant: the person's clipboard is the person's own |
@@ -236,6 +241,9 @@ Every action the editor registers is named, and a test fails when one is not: 38
 | `undo` | not for the assistant: the history holds the person's own work as well; the person undoes with Ctrl+Z |
 | `redo` | not for the assistant: the history holds the person's own work as well; the person redoes with Ctrl+Shift+Z |
 | `clearCanvas` | not for the assistant: it empties every page at once; clear_page and delete_elements do it with a name on it |
+| `loadScene` | not for the assistant: it opens a file dialog, and the files are read by the server itself |
+| `saveFileToDisk` | not for the assistant: it opens a file dialog, and the files are read by the server itself |
+| `saveToActiveFile` | not for the assistant: it opens a file dialog, and the files are read by the server itself |
 | `finalize` | not for the assistant: it is a mode of the person's own editing, not a change of the document |
 | `toggleLinearEditor` | not for the assistant: it is a mode of the person's own editing, not a change of the document |
 | `toggleShapeSwitch` | not for the assistant: it is a mode of the person's own editing, not a change of the document |
@@ -244,4 +252,4 @@ Every action the editor registers is named, and a test fails when one is not: 38
 
 ## Still to come
 
-- The export of an animation and of a handout, the skills for assistants, the VS Code terminal.
+- The export of an animation and of a handout, the VS Code terminal.
