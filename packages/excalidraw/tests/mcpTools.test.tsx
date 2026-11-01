@@ -78,7 +78,9 @@ describe("reading the document", () => {
       currentPage: 1,
       limits: { maxElementsPerCall: MCP_MAX_ELEMENTS_PER_CALL },
     });
-    expect(capabilities.tools).toEqual(MCP_TOOLS.map((tool) => tool.name));
+    expect(capabilities.tools).toEqual(
+      MCP_TOOLS.filter((tool) => !tool.hidden).map((tool) => tool.name),
+    );
     expect(capabilities.coordinates).toMatch(/page-relative/);
   });
 
@@ -1034,7 +1036,7 @@ describe("the tools and their definitions", () => {
   it("every tool has a handler and every handler a tool, and each one says what it takes", () => {
     // the tools that need the app are its to handle
     expect(Object.keys(MCP_HANDLERS).sort()).toEqual(
-      MCP_TOOLS.filter((tool) => !tool.app)
+      MCP_TOOLS.filter((tool) => !tool.app && !tool.server)
         .map((tool) => tool.name)
         .sort(),
     );
