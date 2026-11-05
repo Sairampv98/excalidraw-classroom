@@ -491,6 +491,12 @@ export {
   updatePage,
 } from "./scene";
 
+// ---------------------------------------------------------------------------
+// the multi-page PDF writer
+// ---------------------------------------------------------------------------
+export { buildPdf, buildPagesPdf, encodeCanvasForPdf } from "./scene/pdf";
+export type { BuildPdfOptions, PdfPageImage } from "./scene/pdf";
+
 export {
   codePanelContent,
   codePanelFileName,

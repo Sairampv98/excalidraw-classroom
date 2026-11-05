@@ -300,6 +300,7 @@ describe("the export panel", () => {
 
     exportMock.mockResolvedValue({
       blob: new Blob([new Uint8Array(10)], { type: "image/gif" }),
+      bytes: new Uint8Array(10),
       filename: "chart.gif",
       width: 720,
       height: 340,
@@ -394,6 +395,7 @@ describe("the export panel", () => {
     // it exports the chart that is edited: its four steps
     exportMock.mockResolvedValue({
       blob: new Blob([new Uint8Array(10)], { type: "image/gif" }),
+      bytes: new Uint8Array(10),
       filename: "chart.gif",
       width: 720,
       height: 340,
@@ -459,6 +461,7 @@ describe("the export panel", () => {
 
     exportMock.mockResolvedValue({
       blob: new Blob([new Uint8Array(10)], { type: "image/gif" }),
+      bytes: new Uint8Array(10),
       filename: "chart.gif",
       width: 720,
       height: 340,
@@ -716,6 +719,7 @@ describe("the export panel", () => {
 
     exportMock.mockResolvedValue({
       blob: new Blob([new Uint8Array(10)], { type: "image/gif" }),
+      bytes: new Uint8Array(10),
       filename: "chart.gif",
       width: 720,
       height: 340,
@@ -744,6 +748,7 @@ describe("the export panel", () => {
           finish = () =>
             resolve({
               blob: new Blob([new Uint8Array(2048)], { type: "image/gif" }),
+              bytes: new Uint8Array(2048),
               filename: "chart.gif",
               width: 720,
               height: 340,
