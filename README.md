@@ -1,5 +1,7 @@
 # Excalidraw for the classroom
 
+> **This branch is the second release (2.1.0), kept as it was published.** It is **superseded** by 2.2, which is on `main`. The setups with a wizard are in 2.2; this release has the text-mode `OfflineSetup.exe`.
+
 A **modified Excalidraw**: a fork that adds the things a teacher needs when a VS Code or VSCodium window is the thing being taught — a bridge between the editor and the canvas, panels, OCR, a presenter view, pages with a frame and a number, a virtual display for the projector, and an **AI assistant** that can work on the board while you teach.
 
 ![the clips](clips/index.html)
