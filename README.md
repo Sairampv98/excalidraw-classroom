@@ -46,9 +46,10 @@ Some of the [clips](clips/index.html) show these working. The long version, with
 
 | Branch | What it is |
 | --- | --- |
-| `main` | The current release - the second one. Only the maintainer merges into it. |
+| `main` | The current release, 2.2. Only the maintainer merges into it. |
 | `dev` | This branch: where the next release is prepared. It follows `main` and the maintainer's work; pull requests go here. |
 | `dev-draft` | Where contributors commit. Open a pull request from `dev-draft` to `dev`. |
+| `v2.1` | The second release (2.1.0), kept as it was published when 2.2 replaced it on `main`. |
 | `v1.1` | The first release with its repairs, as it was before the second release. |
 | `v1` | The first release, kept as it was published. It is **superseded**. |
 
@@ -114,21 +115,26 @@ If you would rather not install anything at all, the [Docker](#running-it-in-a-c
 
 ---
 
-## Setting it up with no internet
+## Setting it up on Windows (the setups)
 
-Some rooms have no internet, or the teacher would rather not trust it. The **offline setup** is one file that carries everything it needs inside itself - the app, the extension, Node.js, the editors, Python and Java.
+For a teacher, a student or a classroom of computers, there are **setups with a wizard**: click Next, choose what to put in, click Install. They install **for you alone, with no administrator rights** (Windows 7 asks once for its updates and once for the editor), put a shortcut on the desktop and in the Start menu, and come with an **Uninstall** that takes everything away again and leaves the PATH as it was. They are on the [releases page](https://github.com/Sairampv98/excalidraw-classroom/releases) with their SHA-256 sums.
 
-**The offline file on the releases page is the one that was built for the first release**, and it carries that release's app and extension. This release does not build a new offline payload, so on a machine with internet use the setup above instead.
+| Which | For | What it is |
+| --- | --- | --- |
+| `ClassroomSetup.exe` | Windows 10 (1809 or newer) and 11, 64-bit, **no internet needed** | The board, VS Code with its connection to the board, Python 3.12, Java 21, GCC, Node.js, and the better text reader (Indra OCR). About 1 GB. |
+| `ClassTools-Setup.exe` | The same Windows, for **students** | The tools alone, no board: VS Code, Python, Java, C and C++, Node.js. About 0.8 GB. |
+| `ClassroomSetup-Online.exe` | The same Windows, **with internet** | The same wizard as a small file. It downloads each tool from its maker (with mirrors) and **checks every file against a SHA-256** before using it; it can keep what it downloaded to install on another computer. |
+| `ClassroomSetup-Win7.zip` | **Windows 7 with Service Pack 1**, 32 and 64 bit | The same wizard, with the tools that still run on Windows 7. Unzip the whole folder, run `ClassroomSetup-Win7.exe`. See [docs/WIN7.md](docs/WIN7.md). |
 
-Download `OfflineSetup.exe` from the [releases page](https://github.com/Sairampv98/excalidraw-classroom/releases) and double-click it. It:
+- **Windows may warn** ("Windows protected your PC") because the setups are not code-signed. Click **More info**, then **Run anyway**. Check the SHA-256 against the sums on the releases page if you want to be sure of the file.
+- **32-bit Windows 10** is not supported (the tools are 64-bit only). The setup says so and stops. Windows 10 older than version 1809 is told to update first.
+- **Pen tablets**: the setups carry no tablet drivers. A tablet works as a mouse without one; the maker's driver adds pressure. Where to get them: [docs/INSTALL.md](docs/INSTALL.md#pen-tablets).
+- The setups put VS Code (from Microsoft) in. Each tool keeps its own licence; the C compiler (GCC, from [winlibs](https://github.com/brechtsanders/winlibs_mingw)) is GPL and its source is there.
+- The `OfflineSetup.exe` of the first releases is a text-mode setup for the first release; it is not the wizard and it is not rebuilt.
 
-- unpacks what it carries and **checks every file against its hash** - a file that does not match is refused, never downloaded;
-- **serves the app straight away** - the app is a static bundle, so **nothing has to be installed for it to run**;
-- then asks, **one thing at a time**, whether to install the rest from its own payload: Node.js, VS Code or VSCodium, Python (only for the OCR engine that runs in Python) and Java (only to build the app yourself).
+Silent installs (for a script): `ClassroomSetup.exe /silent /nodesktop`; the exit code is 0 when everything is in, 3 when the Windows is not one the setup is made for, 4 when some tools could not be installed. `/help` lists the rest. More in [docs/INSTALL.md](docs/INSTALL.md).
 
-`-DryRun` reports and installs nothing. `-Yes` accepts every question. A file that is missing is **reported**, never fetched.
-
-More in [`docs/OFFLINE.md`](docs/OFFLINE.md).
+**On Windows 7** the assistant (the MCP server) is not available, the picture of the editor's window in the board does not show yet (the text of the open file does), and the better text reader is left out. A small update will bring the editor's window; see [docs/WIN7.md](docs/WIN7.md).
 
 ---
 
