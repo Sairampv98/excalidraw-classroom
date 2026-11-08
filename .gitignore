@@ -75,3 +75,9 @@ __pycache__/
 /installer/offline/payload/
 /installer/offline/payload.zip
 /installer/offline/OfflineSetup.exe
+
+# the engines the app carries (scripts/vendor/engines.mjs fetches them)
+/public/vendor/
+
+# the click-through installer, built by installer/gui/build-gui-installer.mjs
+/installer/gui/dist/

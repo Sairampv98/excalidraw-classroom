@@ -21,11 +21,11 @@ A **modified Excalidraw**: a fork that adds the things a teacher needs when a VS
 | **Panels** | A canvas element that holds something: the editor's text, a video, a YouTube player, a picture. It floats, it can be locked, and it carries the VS Code look. |
 | **The bridge** | A VS Code / VSCodium extension that connects the editor to the canvas: the file you are editing is mirrored into a panel, and a **Run** button executes the panel's draft in your workspace. |
 | **The live editor** | The mirrored text is a **real editor**: you can select it, copy it as a **code block**, choose the **language** it is read as, and **zoom inside** it. |
-| **A code editor of its own** | A panel that needs no VS Code: write **Python or JavaScript** and press **Run** - it runs in the browser (Python is downloaded the first time). Dark and light themes, a console you can dock below or beside the editor, an **Input** box for `input()` - a program that asks a question waits for the answer - and a clear message when a program runs too long. A language VS Code can run on your machine (Java, Go, C and others) is run there when the bridge is connected. |
+| **A code editor of its own** | A panel that needs no VS Code: write **Python or JavaScript** and press **Run** - it runs in the browser (Python is downloaded the first time). Dark and light themes, a console you can dock below or beside the editor, an **Input** box for `input()`, and a clear message when a program runs too long. A language VS Code can run on your machine (Java, Go, C and others) is run there when the bridge is connected. |
 | **Documents** | A viewer for markdown, source and **PDF** files. A link to another file of the opened folder opens it in the viewer; a link to a website opens a new tab. In a PDF a drag draws a **box**: what is in it goes to the page as a **code card**, a **text box**, a **table**, **where it was**, or as a **sharp picture** of that part of the page; the bold and italic of the source go with the text. |
 | **Bold and italic** | Select **part of a text** and make it bold, italic or both (Ctrl+B, Ctrl+I, or the buttons under the font); the rest of the text is left as it is. |
 | **What is mirrored** | The panel mirrors the **whole** editor window by default. You can **crop a region**, change the crop as often as you like, and turn on **follow the cursor** so the region follows your pointer. |
-| **OCR** | **Choose the area, then read**, wherever a page is read: the machine picks the engine it can actually run - _indra_ with the bridge, _tesseract_ (in the browser) without it - and tells you which one it used; a picker, with the speed measured for each, lets you choose. The text is shown first and can be pasted as a code block, as text, or **where it was** on the page. |
+| **OCR** | **Choose the area, then read**: the whole page is shown first and you drag out the part to read. The machine picks the engine it can actually run — _indra_ with the bridge, _tesseract_ (in the browser) without it — and tells you which one it used. The text is shown first and can be pasted as a code block, as text, or **where it was** on the page. |
 | **The presenter view** | A second window for the projector: the same canvas, full screen, following you. |
 | **Pages** | A page has a **frame** you can toggle, a **page number** in its footer, and a **size** from presets (A4, Letter, 16:9, 4:3, 1920×1080) — and the export honours it. |
 | **Control, parking and the virtual display** | Drive the editor's window from the canvas; park it out of the way or move it onto a **virtual display** for the projector, and bring it back — only when **you** choose to. |
@@ -42,13 +42,14 @@ Some of the [clips](clips/index.html) show these working. The long version, with
 
 ---
 
-## Branches
+## The branches of this repository
 
 | Branch | What it is |
 | --- | --- |
-| `main` | The current release - the second one. Only the maintainer merges into it. |
-| `dev` | Where the next release is prepared. It follows `main` and the maintainer's work; pull requests go here. |
+| `main` | The current release, 2.2. Only the maintainer merges into it. |
+| `dev` | This branch: where the next release is prepared. It follows `main` and the maintainer's work; pull requests go here. |
 | `dev-draft` | Where contributors commit. Open a pull request from `dev-draft` to `dev`. |
+| `v2.1` | The second release (2.1.0), kept as it was published when 2.2 replaced it on `main`. |
 | `v1.1` | The first release with its repairs, as it was before the second release. |
 | `v1` | The first release, kept as it was published. It is **superseded**. |
 
@@ -114,21 +115,26 @@ If you would rather not install anything at all, the [Docker](#running-it-in-a-c
 
 ---
 
-## Setting it up with no internet
+## Setting it up on Windows (the setups)
 
-Some rooms have no internet, or the teacher would rather not trust it. The **offline setup** is one file that carries everything it needs inside itself - the app, the extension, Node.js, the editors, Python and Java.
+For a teacher, a student or a classroom of computers, there are **setups with a wizard**: click Next, choose what to put in, click Install. They install **for you alone, with no administrator rights** (Windows 7 asks once for its updates and once for the editor), put a shortcut on the desktop and in the Start menu, and come with an **Uninstall** that takes everything away again and leaves the PATH as it was. They are on the [releases page](https://github.com/Sairampv98/excalidraw-classroom/releases) with their SHA-256 sums.
 
-**The offline file on the releases page is the one that was built for the first release**, and it carries that release's app and extension. This release does not build a new offline payload, so on a machine with internet use the setup above instead.
+| Which | For | What it is |
+| --- | --- | --- |
+| `ClassroomSetup.exe` | Windows 10 (1809 or newer) and 11, 64-bit, **no internet needed** | The board, VS Code with its connection to the board, Python 3.12, Java 21, GCC, Node.js, and the better text reader (Indra OCR). About 1 GB. |
+| `ClassTools-Setup.exe` | The same Windows, for **students** | The tools alone, no board: VS Code, Python, Java, C and C++, Node.js. About 0.8 GB. |
+| `ClassroomSetup-Online.exe` | The same Windows, **with internet** | The same wizard as a small file. It downloads each tool from its maker (with mirrors) and **checks every file against a SHA-256** before using it; it can keep what it downloaded to install on another computer. |
+| `ClassroomSetup-Win7.zip` | **Windows 7 with Service Pack 1**, 32 and 64 bit | The same wizard, with the tools that still run on Windows 7. Unzip the whole folder, run `ClassroomSetup-Win7.exe`. See [docs/WIN7.md](docs/WIN7.md). |
 
-Download `OfflineSetup.exe` from the [releases page](https://github.com/Sairampv98/excalidraw-classroom/releases) and double-click it. It:
+- **Windows may warn** ("Windows protected your PC") because the setups are not code-signed. Click **More info**, then **Run anyway**. Check the SHA-256 against the sums on the releases page if you want to be sure of the file.
+- **32-bit Windows 10** is not supported (the tools are 64-bit only). The setup says so and stops. Windows 10 older than version 1809 is told to update first.
+- **Pen tablets**: the setups carry no tablet drivers. A tablet works as a mouse without one; the maker's driver adds pressure. Where to get them: [docs/INSTALL.md](docs/INSTALL.md#pen-tablets).
+- The setups put VS Code (from Microsoft) in. Each tool keeps its own licence; the C compiler (GCC, from [winlibs](https://github.com/brechtsanders/winlibs_mingw)) is GPL and its source is there.
+- The `OfflineSetup.exe` of the first releases is a text-mode setup for the first release; it is not the wizard and it is not rebuilt.
 
-- unpacks what it carries and **checks every file against its hash** - a file that does not match is refused, never downloaded;
-- **serves the app straight away** - the app is a static bundle, so **nothing has to be installed for it to run**;
-- then asks, **one thing at a time**, whether to install the rest from its own payload: Node.js, VS Code or VSCodium, Python (only for the _paddle_ OCR engine) and Java (only to build the app yourself).
+Silent installs (for a script): `ClassroomSetup.exe /silent /nodesktop`; the exit code is 0 when everything is in, 3 when the Windows is not one the setup is made for, 4 when some tools could not be installed. `/help` lists the rest. More in [docs/INSTALL.md](docs/INSTALL.md).
 
-`-DryRun` reports and installs nothing. `-Yes` accepts every question. A file that is missing is **reported**, never fetched.
-
-More in [`docs/OFFLINE.md`](docs/OFFLINE.md).
+**On Windows 7** the assistant (the MCP server) is not available, the picture of the editor's window in the board does not show yet (the text of the open file does), and the better text reader is left out. A small update will bring the editor's window; see [docs/WIN7.md](docs/WIN7.md).
 
 ---
 
@@ -233,7 +239,7 @@ Only one editor can hold the port at a time, and the app reaches that one — so
 
 1. Open your project in VS Code or VSCodium. The bridge starts with the editor.
 2. Copy the token from the status bar into the panel's **Bridge** box.
-3. In the canvas, open the main menu (the **hamburger**, top left) and choose **"Code panel (VS Code)"**. The panel lands in the middle of what you can see.
+3. In the canvas, open the main menu (the **hamburger**, top left) and choose **"VS Code mirror (bridge)"** - or **"Code editor (in the browser)"** for an editor that needs no VS Code. The panel lands in the middle of what you can see.
 4. The panel mirrors the file you are editing. **choose a language**, **zoom inside** the editor, and use **Run** to execute the draft.
 5. Open the **presenter view** for the projector window.
 6. **Take a picture** of anything on a panel — the crop it, read the text out of it, or drop it onto another page.
@@ -269,7 +275,7 @@ You do not have to choose an engine: the machine chooses, and it says what it ch
 | order | engine | when it is used | rough speed on an ordinary laptop |
 | --- | --- | --- | --- |
 | 1 | **indra** | when the bridge is connected and _indra_ is installed | ~150 ms |
-| 2 | **tesseract** | always: it runs in the browser (downloaded the first time) or in the bridge | ~250–500 ms |
+| 2 | **tesseract** | always available: it runs in the browser (downloaded the first time) or in the bridge | ~250–500 ms |
 
 The numbers are a guide, not a promise — they were measured on one machine and depend on the engine's model, the resolution of the region, and the machine itself.
 
@@ -328,7 +334,8 @@ Other pieces, and the people who made them:
 
 - [CodeMirror](https://codemirror.net/) — the editor in the panel
 - [tesseract.js](https://tesseract.projectnaptha.com/) — OCR in the browser's Node process
-- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) — the OCR sidecar
+- [Pyodide](https://pyodide.org/) — Python in the browser
+- [pdf.js](https://mozilla.github.io/pdf.js/) — the PDF viewer
 - [indra-ocr](https://pypi.org/project/indra-ocr/) — the fastest engine
 - [tesseract.js-core](https://github.com/naptha/tesseract.js-core) — the wasm cores that ship inside the extension
 
