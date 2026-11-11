@@ -32,6 +32,8 @@ import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 import { OCR_NEEDS_BRIDGE } from "../../packages/vscode-bridge/bridge/src/ocrClient";
 
+import { openEditorSetup } from "../setup/editorSetupState";
+
 import {
   applyCodePanelState,
   applyConnectionTruth,
@@ -94,6 +96,7 @@ const sameCapture = (a: PanelCapture | null, b: PanelCapture): boolean => {
       a.parked === b.parked &&
       a.virtual === b.virtual &&
       a.virtualAvailable === b.virtualAvailable &&
+      a.screenCopy === b.screenCopy &&
       sameControl(a.control, b.control)
     );
   }
@@ -556,6 +559,10 @@ export const useBridgePanel = (
 
     if (remembered) {
       setToken(remembered);
+      session.connect();
+    } else if (session.wasPaired()) {
+      // The editor allowed this page before: it asks to be paired
+      // again, and the editor, which remembers the page, answers by itself
       session.connect();
     }
 
@@ -1160,6 +1167,8 @@ export const useBridgePanel = (
       onTokenChange,
       onPasteToken,
       onConnect,
+      // the dialog that sets the editor up, for a teacher who has none
+      onSetupEditor: openEditorSetup,
     }),
     [
       state.connection,

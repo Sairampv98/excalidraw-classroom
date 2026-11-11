@@ -81,6 +81,11 @@ export interface PanelCaptureLive {
   virtual?: boolean;
   /** whether the machine has a virtual display to put it on */
   virtualAvailable?: boolean;
+  /**
+   * whether the picture is a **copy of the screen** (Windows 7 only):
+   * the window must then be visible and not covered
+   */
+  screenCopy?: boolean;
 }
 
 /**
