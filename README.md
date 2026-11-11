@@ -117,22 +117,22 @@ If you would rather not install anything at all, the [Docker](#running-it-in-a-c
 
 ## Setting it up on Windows (the setups)
 
-For a teacher, a student or a classroom of computers, there are **setups with a wizard**: click Next, choose what to put in, click Install. They install **for you alone, with no administrator rights** (Windows 7 asks once for its updates and once for the editor), put a shortcut on the desktop and in the Start menu, and come with an **Uninstall** that takes everything away again and leaves the PATH as it was. They are on the [releases page](https://github.com/Sairampv98/excalidraw-classroom/releases) with their SHA-256 sums.
+For a teacher, a student or a classroom of computers, there are **setups with a wizard**: click Next, choose what to put in, click Install. They install **for you alone, with no administrator rights** (Windows 7 asks once for its updates and once for the editor), put a shortcut on the desktop and in the Start menu, and come with an **Uninstall** that takes everything away again - or only the tools you tick, and the rest stays - and leaves the PATH as it was. They are on the [releases page](https://github.com/Sairampv98/excalidraw-classroom/releases) with their SHA-256 sums.
 
 | Which | For | What it is |
 | --- | --- | --- |
-| `ClassroomSetup.exe` | Windows 10 (1809 or newer) and 11, 64-bit, **no internet needed** | The board, VS Code with its connection to the board, Python 3.12, Java 21, GCC, Node.js, and the better text reader (Indra OCR). About 1 GB. |
-| `ClassTools-Setup.exe` | The same Windows, for **students** | The tools alone, no board: VS Code, Python, Java, C and C++, Node.js. About 0.8 GB. |
-| `ClassroomSetup-Online.exe` | The same Windows, **with internet** | The same wizard as a small file. It downloads each tool from its maker (with mirrors) and **checks every file against a SHA-256** before using it; it can keep what it downloaded to install on another computer. |
+| `ClassroomSetup.exe` | Windows 10 (1809 or newer) and 11, 64-bit, **no internet needed** | The board, VSCodium with its connection to the board, Python 3.12, Java 21, GCC, Node.js, and the better text reader (Indra OCR). About 1 GB. |
+| `ClassTools-Setup.exe` | The same Windows, for **students** | The tools alone, no board: VSCodium, Python, Java, C and C++, Node.js. About 0.8 GB. |
+| `ClassroomSetup-Online.exe` | The same Windows, **with internet** | The same wizard as a small file. It downloads each tool from its maker (with mirrors) and **checks every file against a SHA-256** before using it (the editor it takes is VS Code, from Microsoft); it can keep what it downloaded to install on another computer. |
 | `ClassroomSetup-Win7.zip` | **Windows 7 with Service Pack 1**, 32 and 64 bit | The same wizard, with the tools that still run on Windows 7. Unzip the whole folder, run `ClassroomSetup-Win7.exe`. See [docs/WIN7.md](docs/WIN7.md). |
 
 - **Windows may warn** ("Windows protected your PC") because the setups are not code-signed. Click **More info**, then **Run anyway**. Check the SHA-256 against the sums on the releases page if you want to be sure of the file.
 - **32-bit Windows 10** is not supported (the tools are 64-bit only). The setup says so and stops. Windows 10 older than version 1809 is told to update first.
 - **Pen tablets**: the setups carry no tablet drivers. A tablet works as a mouse without one; the maker's driver adds pressure. Where to get them: [docs/INSTALL.md](docs/INSTALL.md#pen-tablets).
-- The setups put VS Code (from Microsoft) in. Each tool keeps its own licence; the C compiler (GCC, from [winlibs](https://github.com/brechtsanders/winlibs_mingw)) is GPL and its source is there.
+- The setups put VSCodium (the MIT-licensed build of the editor) in; the small setup that downloads takes VS Code from Microsoft instead. Each tool keeps its own licence; the C compiler (GCC, from [winlibs](https://github.com/brechtsanders/winlibs_mingw)) is GPL and its source is there.
 - The `OfflineSetup.exe` of the first releases is a text-mode setup for the first release; it is not the wizard and it is not rebuilt.
 
-Silent installs (for a script): `ClassroomSetup.exe /silent /nodesktop`; the exit code is 0 when everything is in, 3 when the Windows is not one the setup is made for, 4 when some tools could not be installed. `/help` lists the rest. More in [docs/INSTALL.md](docs/INSTALL.md).
+Silent installs (for a script): `ClassroomSetup.exe /silent /nodesktop`; the exit code is 0 when everything is in, 3 when the Windows is not one the setup is made for, 4 when some tools could not be installed. `/help` lists the rest. `Uninstall.exe /silent /remove=python,node` takes away only those tools; without `/remove` it takes everything. More in [docs/INSTALL.md](docs/INSTALL.md).
 
 **On Windows 7** the assistant (the MCP server) is not available, the picture of the editor's window in the board does not show yet (the text of the open file does), and the better text reader is left out. A small update will bring the editor's window; see [docs/WIN7.md](docs/WIN7.md).
 
@@ -205,7 +205,7 @@ code    --install-extension excalidraw-bridge-0.2.1.vsix --force
 codium  --install-extension excalidraw-bridge-0.2.1.vsix --force
 ```
 
-The extension asks for **VS Code 1.70 or newer** (VSCodium of the same age works too), so it also runs on the older editor of a classroom computer. On a computer that old, the window-capture helpers (the live picture of the editor's window) need a newer PowerShell than Windows 7 has; the mirror of the open file and the output of a program do not.
+The extension asks for **VS Code 1.70 or newer** (VSCodium of the same age works too), so it also runs on the older editor of a classroom computer. On Windows 7 the window-capture helpers (the live picture of the editor's window) run on its PowerShell 2.0, but the picture of the real editor's window has only been tried on computers with no graphics card, where it came out empty; the mirror of the open file and the output of a program work there.
 
 Or build it yourself from this repository - one command, no extra tooling:
 
