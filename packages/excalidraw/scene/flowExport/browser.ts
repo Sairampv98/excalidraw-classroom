@@ -207,6 +207,8 @@ export const createVideoEncoder = (): FlowVideoEncoder | null => {
  */
 export const createFrameSource = (options: {
   base: CanvasImageSource | null;
+  /** the chart without the labels that are lit (see `drawFlowFrame`) */
+  bare?: CanvasImageSource | null;
   scene: FlowFrameScene;
   transform: FlowFrameTransform;
   size: { width: number; height: number };
@@ -217,10 +219,15 @@ export const createFrameSource = (options: {
       transform: FlowFrameTransform,
       timeMs: number,
     ) => Promise<CanvasImageSource | null>;
+    renderBare?: (
+      transform: FlowFrameTransform,
+      timeMs: number,
+    ) => Promise<CanvasImageSource | null>;
   };
 }): FlowFrameSource => {
   const { scene, size, view } = options;
   let base = options.base;
+  let bare = options.bare ?? null;
   let transform = options.transform;
   let drawnFor: string | null = null;
   const canvas = document.createElement("canvas");
@@ -235,7 +242,7 @@ export const createFrameSource = (options: {
   }
 
   const draw = (timeMs: number) => {
-    drawFlowFrame(ctx, scene, timeMs, transform, base, size);
+    drawFlowFrame(ctx, scene, timeMs, transform, base, size, bare);
 
     return canvas;
   };
@@ -253,6 +260,7 @@ export const createFrameSource = (options: {
 
           if (key !== drawnFor) {
             base = await view.renderBase(transform, timeMs);
+            bare = (await view.renderBare?.(transform, timeMs)) ?? null;
             drawnFor = key;
           }
         }

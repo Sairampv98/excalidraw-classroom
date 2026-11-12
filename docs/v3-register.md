@@ -2,6 +2,91 @@
 
 This register describes usable entry points. Assistant tool names below are proposals for the assistant task, not tools implemented here.
 
+## v3b-1-flow-arrows
+
+| Word or control | Row | File | Clip idea | Proposed assistant tool |
+| --- | --- | --- | --- | --- |
+| `@elbow` (one native elbow) | | packages/excalidraw/scene/flowPresets.ts | Move the end node and watch its elbow follow | set_flow_route |
+| `@curve` (smooth turn) | | packages/element/src/binding.ts | Follow a token through a curve | set_flow_route |
+| `@straight` and no route word | | packages/excalidraw/scene/flowScript.ts | Compare a straight connection with a step | set_flow_route |
+| Up to four route words in travel order; a fifth reports its line | | packages/element/src/binding.ts | Mix sharp corners and smooth turns, then correct an overlong route | set_flow_route |
+| `:left` | | packages/element/src/binding.ts | Route to the left as you travel | set_flow_route |
+| `:right` | | packages/element/src/binding.ts | Compare the other side of an arrow | set_flow_route |
+| `:in` | | packages/element/src/binding.ts | Bring a bend toward the chart centre | set_flow_route |
+| `:out` | | packages/element/src/binding.ts | Take a bend away from the chart centre | set_flow_route |
+| `@fork-N` and comma-separated branches | | packages/excalidraw/scene/flowScript.ts | Make two, three and eight drops on a shared bar | make_flow_fork |
+| Reverse fork `B, C -> A @fork-3` | | packages/excalidraw/scene/flowPresets.ts | Join branches into one node and leave one loose | make_flow_fork |
+| Loose fork endpoints | | packages/excalidraw/scene/flowPresets.ts | Drag an empty drop onto a node | connect_flow_nodes |
+| Fork in the native arrow properties and arrow tool | | packages/excalidraw/actions/actionProperties.tsx | Press 5, choose Fork, draw, undo once | make_flow_fork |
+| Fork branches number box | | packages/excalidraw/actions/actionProperties.tsx | Add a drop and remove it again | set_flow_fork_count |
+| Make fork on arrows with one source | | packages/excalidraw/scene/flowPresets.ts | Combine existing arrows without losing their bindings | make_flow_fork |
+| Marching beams | | packages/excalidraw/scene/flowStyles.ts | Send repeated beams through all the bends | set_flow_animation |
+| Marching tokens | | packages/excalidraw/scene/flowStyles.ts | Repeat the stepped token on every arrow | set_flow_animation |
+| Marching marks alongside the step | | packages/excalidraw/components/flowPanel/FlowAnimationOptions.tsx | Combine a stepped token with marching beams | set_flow_animation |
+| Marching spacing (default 150 scene units) | | packages/excalidraw/components/flowPanel/FlowAnimationOptions.tsx | Spread repeated marks apart in the preview | set_flow_animation |
+| Show in class (class view and presenter only) and Preview class loop (editor) | | packages/excalidraw/components/FlowClassOverlay.tsx | Mark a chart, then tick Preview class loop to see what the class sees | set_flow_class_visibility |
+| Mark spacing box in the Animation tab (dash gap, beam and token spacing) | | packages/excalidraw/components/FlowAnimationBar.tsx | Widen the gaps and watch the dashes spread | set_flow_animation |
+| Gap between dashes (expanded Arrow window) | | packages/excalidraw/components/flowPanel/FlowAnimationOptions.tsx | Tighten the dashes | set_flow_animation |
+| A node colour or glow with node animation none lights every node all the time | | packages/excalidraw/components/FlowAnimationOverlay.tsx | Colour a chart with no animation | set_flow_look |
+| `@fill:#ffe3e3` | | packages/excalidraw/scene/flowScript.ts | Colour one node from the script | set_flow_look |
+| `@outline:#862e9c` | | packages/excalidraw/scene/flowScript.ts | Colour one node or arrow outline | set_flow_look |
+| `@glow` | | packages/excalidraw/components/FlowAnimationOverlay.tsx | Give a node or arrow marks their own glow | set_flow_look |
+| `@style:marching-beam` (arrow) | | packages/excalidraw/components/FlowAnimationOverlay.tsx | Animate different arrows in different styles | set_flow_animation |
+| `@style:focus` (node) | | packages/excalidraw/scene/flowScript.ts | Give one node its own focus highlight | set_flow_animation |
+| `@style:pulse` (node) | | packages/excalidraw/scene/flowScript.ts | Pulse a chosen node | set_flow_animation |
+| `@style:none` (node or arrow) | | packages/excalidraw/scene/flowScript.ts | Turn off a chosen part's animation | set_flow_animation |
+| `@style:beam` (arrow) | | packages/excalidraw/scene/flowScript.ts | Send a single beam from a chosen source | set_flow_animation |
+| `@style:token` (arrow) | | packages/excalidraw/scene/flowScript.ts | Send the stepped ball along one connection | set_flow_animation |
+| `@style:marching` (arrow; alias marching-dashes) | | packages/excalidraw/scene/flowScript.ts | Give one arrow the existing dashes | set_flow_animation |
+| `@style:marching-token` (arrow; alias marching-tokens) | | packages/excalidraw/scene/flowScript.ts | Give one arrow repeated balls | set_flow_animation |
+| `@style:pipe` (arrow) | | packages/excalidraw/scene/flowScript.ts | Choose the existing pipe for one arrow | set_flow_animation |
+| `animation:` | | packages/excalidraw/scene/flowScript.ts | Start a chart with marching-tokens from its script | set_flow_animation |
+| `arrow-animation:` | | packages/excalidraw/scene/flowScript.ts | Set an arrow style by its explicit header | set_flow_animation |
+| `node-animation:` | | packages/excalidraw/scene/flowScript.ts | Pick the chart's node highlight | set_flow_animation |
+| `speed:` (multiplier, 1 = 240 scene units per second) | | packages/excalidraw/scene/flowScript.ts | Double the travel speed with speed: 2 | set_flow_animation |
+| `step-ms:` | | packages/excalidraw/scene/flowScript.ts | Hold each step for 900 ms | set_flow_animation |
+| `loop:` | | packages/excalidraw/scene/flowScript.ts | Stop at the last step or repeat | set_flow_animation |
+| `spacing:` | | packages/excalidraw/scene/flowScript.ts | Set the repeated marks' spacing | set_flow_animation |
+| `marching:` (none, marching-dashes, marching-beams or marching-tokens) | | packages/excalidraw/scene/flowScript.ts | Add a repeated layer beside a stepped animation | set_flow_animation |
+| Neon glow slider for each part (Look tab) and `glow-shape-strength:`, `glow-text-strength:`, `glow-mark-strength:`, `glow-arrow-strength:` | | packages/excalidraw/components/FlowAnimationBar.tsx | Widen the neon of one part from faint to fierce | set_flow_look |
+| Neon width Small (0.65), Normal, Large (2.5) for each part and `glow-<part>-width:` | | packages/excalidraw/components/FlowAnimationBar.tsx | Thin and thick neon lines | set_flow_look |
+| Neon core Soft, White, Colour for each part and `glow-<part>-core:` | | packages/excalidraw/components/FlowAnimationBar.tsx | Change the bright middle of the neon | set_flow_look |
+| Node and Arrow animation `off` (draws nothing; `none` lights every node and keeps the neon) | | packages/excalidraw/scene/flowStyles.ts | Compare None and Off with a colour set | set_flow_animation |
+| Highlight on `all` (shape, text box and text) and `highlight: all` | | packages/excalidraw/scene/flowLook.ts | Light a whole node | set_flow_look |
+| A neon arrow keeps its own drawing and head, and the head glows | | packages/excalidraw/scene/flowStyles.ts | Neon arrows with heads | set_flow_look |
+| `background:` | | packages/excalidraw/scene/flowPresets.ts | Give a chart a coloured backing in the drawing | set_flow_look |
+| `order: reverse` or `order: forward` | | packages/excalidraw/scene/flowOrder.ts | Read the steps in reverse order | set_flow_order |
+| `node-color:` | | packages/excalidraw/scene/flowScript.ts | Match the Shape colour chip from a script | set_flow_colours |
+| `text-color:` | | packages/excalidraw/scene/flowScript.ts | Match the Text colour chip from a script | set_flow_colours |
+| `mark-color:` | | packages/excalidraw/scene/flowScript.ts | Match the Animation colour chip from a script | set_flow_colours |
+| `arrow-color:` | | packages/excalidraw/scene/flowScript.ts | Match the Arrow colour chip from a script | set_flow_colours |
+| `glow-shape:` | | packages/excalidraw/scene/flowScript.ts | Turn Shape neon on in the script | set_flow_look |
+| `glow-text:` | | packages/excalidraw/scene/flowScript.ts | Turn Text neon on in the script | set_flow_look |
+| `glow-mark:` | | packages/excalidraw/scene/flowScript.ts | Turn Animation neon on in the script | set_flow_look |
+| `glow-arrow:` | | packages/excalidraw/scene/flowScript.ts | Turn Arrow neon on in the script | set_flow_look |
+| `hide-arrow:` | | packages/excalidraw/scene/flowScript.ts | Hide the base arrow while marks play | set_flow_look |
+| `highlight:` (shape, shape-box, shape-text, box, letters) | | packages/excalidraw/scene/flowScript.ts | Match Highlight on in the Look tab | set_flow_look |
+| `shape:` | | packages/excalidraw/scene/flowPresets.ts | Set the chart shape from its header | set_flow_look |
+| `fit:` | | packages/excalidraw/scene/flowPresets.ts | Choose page, spread or larger | set_flow_look |
+| `arrows:` | | packages/excalidraw/scene/flowPresets.ts | Keep preset arrows or remove them | set_flow_look |
+| `layout:` (TB or LR) | | packages/excalidraw/scene/flowPresets.ts | Choose downward or rightward fork drops | layout_flow |
+
+The following words are preserved as script metadata for the animation engines in v3b-5; only the existing none, focus and pulse engines are supplied by this task.
+
+| Node word (grammar; engine belongs to v3b-5) | Row | File | Clip idea when the engine is built | Proposed assistant tool |
+| --- | --- | --- | --- | --- |
+| `@style:ouroboros` | | packages/excalidraw/scene/flowScript.ts | Circle the node outline | set_flow_animation |
+| `@style:sparkle` | | packages/excalidraw/scene/flowScript.ts | Twinkle at its edges | set_flow_animation |
+| `@style:flowing-beam` | | packages/excalidraw/scene/flowScript.ts | Run a beam around its outline | set_flow_animation |
+| `@style:draw-on` | | packages/excalidraw/scene/flowScript.ts | Draw the outline and fill | set_flow_animation |
+| `@style:glint` | | packages/excalidraw/scene/flowScript.ts | Sweep a shine across the node | set_flow_animation |
+| `@style:orbit` | | packages/excalidraw/scene/flowScript.ts | Orbit the node with a dot | set_flow_animation |
+| `@style:ripple` | | packages/excalidraw/scene/flowScript.ts | Send rings outward | set_flow_animation |
+| `@style:breathing` | | packages/excalidraw/scene/flowScript.ts | Slowly grow and shrink | set_flow_animation |
+| `@style:wobble` | | packages/excalidraw/scene/flowScript.ts | Shake a node briefly | set_flow_animation |
+| `@style:flicker` | | packages/excalidraw/scene/flowScript.ts | Flicker its neon outline | set_flow_animation |
+| `@style:spotlight` | | packages/excalidraw/scene/flowScript.ts | Dim the rest of the chart | set_flow_animation |
+
 ## v3b-0-flow-panel
 
 | Word or control | Row | File | Clip idea | Proposed assistant tool |

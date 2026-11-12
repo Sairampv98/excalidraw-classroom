@@ -28,6 +28,7 @@ import {
   FLOW_LOOK_DEFAULTS,
   readFlowColor,
   readFlowLook,
+  readGlowLevels,
 } from "../scene/flowLook";
 import { flowOfSelection } from "../scene/flowSelection";
 import {
@@ -166,6 +167,7 @@ const settingsOf = (state: FlowAnimationState): FlowAnimationSettings => ({
   glowText: state.glowText,
   glowMark: state.glowMark,
   glowArrow: state.glowArrow,
+  ...readGlowLevels(state),
   markColor: state.markColor,
   arrowColor: state.arrowColor,
   hideArrow: state.hideArrow,
@@ -239,6 +241,7 @@ const lookOf = (
   glowText: options?.glowText ?? current.glowText,
   glowMark: options?.glowMark ?? current.glowMark,
   glowArrow: options?.glowArrow ?? current.glowArrow,
+  ...readGlowLevels({ ...readGlowLevels(current), ...(options ?? {}) }),
   hideArrow: options?.hideArrow ?? current.hideArrow,
   nodeTarget: options?.nodeTarget ?? current.nodeTarget,
 });
@@ -434,6 +437,7 @@ export const getFlowAnimationSnapshot = (): FlowAnimationSnapshot | null => {
     glowText: state.glowText,
     glowMark: state.glowMark,
     glowArrow: state.glowArrow,
+    ...readGlowLevels(state),
     markColor: state.markColor,
     arrowColor: state.arrowColor,
     hideArrow: state.hideArrow,
